@@ -10,6 +10,192 @@ const build = require('../scripts/build');
 
 const packageJson = require('../package.json');
 
+async function createProjectStructure(projectName, answers) {
+  await fsPromises.mkdir(projectName);
+  await fsPromises.mkdir(path.join(projectName, 'pages'));
+  await fsPromises.mkdir(path.join(projectName, 'components'));
+  await fsPromises.mkdir(path.join(projectName, 'styles'));
+  await fsPromises.mkdir(path.join(projectName, 'public'));
+
+  const mainPage = `
+const pauljs = require('pauljs');
+const { components } = pauljs;
+
+// Import custom components
+const CustomHero = require('../components/CustomHero');
+const CustomCTA = require('../components/CustomCTA');
+const CustomFooter = require('../components/CustomFooter');
+
+// Import custom styles
+require('../styles/main.css');
+
+const app = pauljs.createApp();
+
+app.createPage('/', {
+  title: '${answers.title}',
+  description: '${answers.description}',
+  
+  // Use custom components
+  hero: CustomHero({
+    title: '${answers.title}',
+    subtitle: '${answers.description}',
+    ctaText: 'Get Started',
+    ctaUrl: '#signup'
+  }),
+  
+  cta: CustomCTA({
+    title: 'Ready to Start?',
+    description: 'Join us today!',
+    primaryButtonText: 'Sign Up',
+    primaryButtonUrl: '#signup',
+    secondaryButtonText: 'Learn More',
+    secondaryButtonUrl: '#learn-more'
+  }),
+  
+  footer: CustomFooter({
+    companyName: '${answers.title}',
+    links: [
+      { text: 'About', url: '/about' },
+      { text: 'Features', url: '#features' },
+      { text: 'Contact', url: '#contact' }
+    ]
+  })
+});
+
+module.exports = app;
+`;
+
+  const customHeroComponent = `
+const pauljs = require('pauljs');
+const { components } = pauljs;
+
+function CustomHero(props) {
+  return components.hero({
+    ...props,
+    backgroundColor: '#f7fafc',
+    textColor: '#2d3748',
+    // Add any custom styling or behavior
+  });
+}
+
+module.exports = CustomHero;
+`;
+
+  const customCTAComponent = `
+const pauljs = require('pauljs');
+const { components } = pauljs;
+
+function CustomCTA(props) {
+  return components.cta({
+    ...props,
+    backgroundColor: '#edf2f7',
+    textColor: '#2d3748',
+    // Add any custom styling or behavior
+  });
+}
+
+module.exports = CustomCTA;
+`;
+
+  const customFooterComponent = `
+const pauljs = require('pauljs');
+const { components } = pauljs;
+
+function CustomFooter(props) {
+  return components.footer({
+    ...props,
+    backgroundColor: '#2d3748',
+    textColor: '#f7fafc',
+    // Add any custom styling or behavior
+  });
+}
+
+module.exports = CustomFooter;
+`;
+
+  const mainCSS = `
+/* Custom styles for your landing page */
+:root {
+  --primary-color: #3182ce;
+  --secondary-color: #2d3748;
+  --background-color: #ffffff;
+  --text-color: #2d3748;
+}
+
+/* Override PaulJS component styles */
+.pauljs-hero {
+  /* Your custom hero styles */
+}
+
+.pauljs-cta {
+  /* Your custom CTA styles */
+}
+
+.pauljs-footer {
+  /* Your custom footer styles */
+}
+`;
+
+  await fsPromises.writeFile(path.join(projectName, 'pages', 'index.js'), mainPage);
+  await fsPromises.writeFile(path.join(projectName, 'components', 'CustomHero.js'), customHeroComponent);
+  await fsPromises.writeFile(path.join(projectName, 'components', 'CustomCTA.js'), customCTAComponent);
+  await fsPromises.writeFile(path.join(projectName, 'components', 'CustomFooter.js'), customFooterComponent);
+  await fsPromises.writeFile(path.join(projectName, 'styles', 'main.css'), mainCSS);
+
+  const pkg = {
+    name: projectName,
+    version: '1.0.0',
+    scripts: {
+      start: 'pauljs serve',
+      build: 'pauljs build',
+      dev: 'pauljs serve --watch'
+    },
+    dependencies: {
+      pauljs: `^${packageJson.version}`
+    }
+  };
+
+  await fsPromises.writeFile(
+    path.join(projectName, 'package.json'),
+    JSON.stringify(pkg, null, 2)
+  );
+
+  const readme = `
+# ${answers.title}
+
+${answers.description}
+
+## Project Structure
+\`\`\`
+${projectName}/
+  ├── pages/          # Page configurations
+  │   └── index.js    # Main page
+  ├── components/     # Custom components
+  │   ├── CustomHero.js
+  │   ├── CustomCTA.js
+  │   └── CustomFooter.js
+  ├── styles/        # Custom styles
+  │   └── main.css
+  └── public/        # Static assets
+\`\`\`
+
+## Development
+
+\`\`\`bash
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+\`\`\`
+`;
+
+  await fsPromises.writeFile(path.join(projectName, 'README.md'), readme);
+}
+
 program
   .version(packageJson.version)
   .description('PaulJS CLI - Create beautiful landing pages quickly');
@@ -36,57 +222,15 @@ program
     ]);
 
     try {
-      await fsPromises.mkdir(projectName);
-      
-      const pagesDir = path.join(projectName, 'pages');
-      await fsPromises.mkdir(pagesDir);
-
-      const mainPage = `
-const pauljs = require('pauljs');
-const app = pauljs.createApp();
-
-// Configure your landing page
-app.createPage('/', {
-  title: '${answers.title}',
-  description: '${answers.description}',
-  hero: {
-    title: '${answers.title}',
-    subtitle: '${answers.description}',
-    ctaText: 'Get Started',
-    ctaUrl: '#signup'
-  },
-  cta: {
-    title: 'Ready to Start?',
-    description: 'Join us today and experience the difference',
-    primaryButtonText: 'Sign Up Now',
-    primaryButtonUrl: '#signup'
-  }
-});
-
-module.exports = app;
-`;
-
-      await fsPromises.writeFile(path.join(pagesDir, 'index.js'), mainPage);
-
-      const pkg = {
-        name: projectName,
-        version: '1.0.0',
-        scripts: {
-          start: 'pauljs serve',
-          build: 'pauljs build',
-          dev: 'pauljs serve --watch'
-        },
-        dependencies: {
-          pauljs: `^${packageJson.version}`
-        }
-      };
-
-      await fsPromises.writeFile(
-        path.join(projectName, 'package.json'),
-        JSON.stringify(pkg, null, 2)
-      );
+      await createProjectStructure(projectName, answers);
 
       console.log(chalk.green('\n✨ Project created successfully!'));
+      console.log(chalk.yellow('\nProject structure:'));
+      console.log(chalk.white(`  ${projectName}/`));
+      console.log(chalk.white('    ├── pages/'));
+      console.log(chalk.white('    ├── components/'));
+      console.log(chalk.white('    ├── styles/'));
+      console.log(chalk.white('    └── public/'));
       console.log(chalk.yellow('\nNext steps:'));
       console.log(chalk.white(`  cd ${projectName}`));
       console.log(chalk.white('  npm install'));

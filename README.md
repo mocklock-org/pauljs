@@ -39,86 +39,81 @@ npm run build
 
 ## Project Structure
 
+When you create a new PaulJS project, it comes with the following structure:
+
 ```
 my-landing-page/
-  ├── pages/
-  │   └── index.js      # Main page configuration
-  ├── public/           # Static assets (images, etc.)
-  ├── package.json
-  └── node_modules/
+  ├── pages/          # Page configurations
+  │   └── index.js    # Main page
+  ├── components/     # Custom components
+  │   ├── CustomHero.js
+  │   ├── CustomCTA.js
+  │   └── CustomFooter.js
+  ├── styles/        # Custom styles
+  │   └── main.css   # Global styles and component overrides
+  ├── public/        # Static assets (images, fonts, etc.)
+  └── package.json
 ```
 
-## Creating Pages
+### Pages
+
+The `pages` directory contains your page configurations. Each page can have its own layout and components:
 
 ```javascript
 // pages/index.js
 const pauljs = require('pauljs');
+const CustomHero = require('../components/CustomHero');
+
 const app = pauljs.createApp();
 
-// Create home page
 app.createPage('/', {
-  title: 'Welcome',
-  description: 'My awesome landing page',
-  hero: {
-    title: 'Welcome to My Site',
-    subtitle: 'The best landing page ever',
-    ctaText: 'Get Started',
-    ctaUrl: '#signup'
-  },
-  cta: {
-    title: 'Ready to Start?',
-    description: 'Join us today!',
-    primaryButtonText: 'Sign Up',
-    primaryButtonUrl: '/signup'
-  }
-});
-
-// Create additional pages
-app.createPage('/about', {
-  title: 'About Us',
-  // ... component configurations
+  title: 'My Landing Page',
+  hero: CustomHero({
+    title: 'Welcome',
+    subtitle: 'Build amazing landing pages'
+  })
 });
 
 module.exports = app;
 ```
 
-## Using Components
+### Custom Components
 
-### Vanilla JavaScript/HTML
+Create custom components by extending PaulJS base components:
 
 ```javascript
-const { components } = require('pauljs');
+// components/CustomHero.js
+const pauljs = require('pauljs');
+const { components } = pauljs;
 
-// Render a hero section
-const heroHtml = components.hero({
-  title: 'Welcome to My Site',
-  subtitle: 'Build amazing landing pages quickly',
-  ctaText: 'Get Started',
-  ctaUrl: '/signup'
-});
+function CustomHero(props) {
+  return components.hero({
+    ...props,
+    backgroundColor: '#f7fafc',
+    textColor: '#2d3748'
+  });
+}
+
+module.exports = CustomHero;
 ```
 
-### React Integration
+### Styling
 
-```javascript
-const { components, adapters } = require('pauljs');
-const { convertToReactComponent } = adapters.react;
+Customize your components using CSS:
 
-// Convert a PaulJS component to a React component
-const HeroComponent = convertToReactComponent(components.hero, {
-  title: 'Welcome to My Site',
-  subtitle: 'Build amazing landing pages quickly',
-  ctaText: 'Get Started',
-  ctaUrl: '/signup'
-});
+```css
+/* styles/main.css */
+:root {
+  --primary-color: #3182ce;
+  --secondary-color: #2d3748;
+}
 
-// Use in your React app
-function App() {
-  return (
-    <div>
-      <HeroComponent />
-    </div>
-  );
+.pauljs-hero {
+  /* Override hero styles */
+}
+
+.pauljs-cta {
+  /* Override CTA styles */
 }
 ```
 
@@ -159,23 +154,26 @@ components.footer({
 });
 ```
 
+## React Integration
+
+PaulJS components can be used in React applications:
+
+```javascript
+const { components, adapters } = require('pauljs');
+const { convertToReactComponent } = adapters.react;
+
+// Convert a PaulJS component to a React component
+const HeroComponent = convertToReactComponent(components.hero, {
+  title: 'Welcome',
+  subtitle: 'Build amazing landing pages'
+});
+```
+
 ## Development Commands
 
 - `npm run dev` - Start development server with hot reloading
 - `npm start` - Start production server
 - `npm run build` - Build static site for production
-
-## Customization
-
-All components accept style overrides through props:
-
-```javascript
-components.hero({
-  backgroundColor: '#000',
-  textColor: '#fff',
-  // ... other props
-});
-```
 
 ## License
 
