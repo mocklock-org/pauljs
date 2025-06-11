@@ -5,10 +5,12 @@ const inquirer = require('inquirer');
 const chalk = require('chalk');
 const path = require('path');
 const fs = require('fs').promises;
-const pauljs = require('../src/index');
+const build = require('../scripts/build');
+
+const packageJson = require('../package.json');
 
 program
-  .version('1.0.0')
+  .version(packageJson.version)
   .description('PaulJS CLI - Create beautiful landing pages quickly');
 
 program
@@ -74,7 +76,7 @@ module.exports = app;
           dev: 'pauljs serve --watch'
         },
         dependencies: {
-          pauljs: '^1.0.0'
+          pauljs: `^${packageJson.version}`
         }
       };
 
@@ -95,35 +97,14 @@ module.exports = app;
   });
 
 program
-  .command('serve')
-  .description('Start the development server')
-  .option('-p, --port <port>', 'port to run on', '3000')
-  .option('-w, --watch', 'watch for changes', false)
-  .action(async (options) => {
-    try {
-      const app = require(path.join(process.cwd(), 'pages/index.js'));
-      await app.start(parseInt(options.port));
-
-      if (options.watch) {
-        console.log(chalk.yellow('Watch mode enabled'));
-      }
-    } catch (error) {
-      console.error(chalk.red('Error starting server:', error.message));
-      process.exit(1);
-    }
-  });
-
-program
   .command('build')
-  .description('Build static site')
-  .option('-o, --output <dir>', 'output directory', 'dist')
-  .action(async (options) => {
+  .description('Build the PaulJS package')
+  .action(async () => {
     try {
-      const app = require(path.join(process.cwd(), 'pages/index.js'));
-      const outputDir = await app.exportStaticSite(options.output);
-      console.log(chalk.green(`\n✨ Static site built successfully in ${outputDir}!`));
+      await build();
+      console.log(chalk.green('✨ Package built successfully!'));
     } catch (error) {
-      console.error(chalk.red('Error building site:', error.message));
+      console.error(chalk.red('Error building package:', error.message));
       process.exit(1);
     }
   });
