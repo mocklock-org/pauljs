@@ -4,7 +4,8 @@ const { program } = require('commander');
 const inquirer = require('inquirer');
 const chalk = require('chalk');
 const path = require('path');
-const fs = require('fs').promises;
+const fs = require('fs');
+const fsPromises = require('fs').promises;
 const build = require('../scripts/build');
 
 const packageJson = require('../package.json');
@@ -35,10 +36,10 @@ program
     ]);
 
     try {
-      await fs.mkdir(projectName);
+      await fsPromises.mkdir(projectName);
       
       const pagesDir = path.join(projectName, 'pages');
-      await fs.mkdir(pagesDir);
+      await fsPromises.mkdir(pagesDir);
 
       const mainPage = `
 const pauljs = require('pauljs');
@@ -65,7 +66,7 @@ app.createPage('/', {
 module.exports = app;
 `;
 
-      await fs.writeFile(path.join(pagesDir, 'index.js'), mainPage);
+      await fsPromises.writeFile(path.join(pagesDir, 'index.js'), mainPage);
 
       const pkg = {
         name: projectName,
@@ -80,7 +81,7 @@ module.exports = app;
         }
       };
 
-      await fs.writeFile(
+      await fsPromises.writeFile(
         path.join(projectName, 'package.json'),
         JSON.stringify(pkg, null, 2)
       );
@@ -126,7 +127,6 @@ program
           delete require.cache[require.resolve(indexPath)];
           try {
             const newApp = require(indexPath);
-            // Restart the server with the new app
             if (app.stop) app.stop();
             newApp.start(parseInt(options.port));
           } catch (error) {
