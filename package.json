@@ -1,6 +1,6 @@
 {
   "name": "pauljs",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A lightweight framework for building fast landing pages",
   "main": "src/index.js",
   "bin": {
