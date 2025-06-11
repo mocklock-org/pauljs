@@ -48,7 +48,7 @@ function generateStyles(props) {
 }
 
 function render(props = {}) {
-  const mergedProps = { ...defaultProps, ...props };
+  const mergedProps = Object.assign({}, defaultProps, props);
   return `
     <style>${generateStyles(mergedProps)}</style>
     <section class="pauljs-hero">
@@ -60,8 +60,9 @@ function render(props = {}) {
 }
 
 function react(props = {}) {
+  const mergedProps = Object.assign({}, defaultProps, props);
   return {
-    component: ({ title, subtitle, ctaText, ctaUrl, backgroundColor, textColor } = { ...defaultProps, ...props }) => `
+    component: ({ title, subtitle, ctaText, ctaUrl, backgroundColor, textColor } = mergedProps) => `
       const styles = ${JSON.stringify(generateStyles({ backgroundColor, textColor }))};
       
       return (

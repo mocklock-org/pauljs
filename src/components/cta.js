@@ -68,7 +68,7 @@ function generateStyles(props) {
 }
 
 function render(props = {}) {
-  const mergedProps = { ...defaultProps, ...props };
+  const mergedProps = Object.assign({}, defaultProps, props);
   return `
     <style>${generateStyles(mergedProps)}</style>
     <section class="pauljs-cta">
@@ -87,6 +87,7 @@ function render(props = {}) {
 }
 
 function react(props = {}) {
+  const mergedProps = Object.assign({}, defaultProps, props);
   return {
     component: ({
       title,
@@ -97,7 +98,7 @@ function react(props = {}) {
       secondaryButtonUrl,
       backgroundColor,
       textColor
-    } = { ...defaultProps, ...props }) => `
+    } = mergedProps) => `
       const styles = ${JSON.stringify(generateStyles({ backgroundColor, textColor }))};
       
       return (

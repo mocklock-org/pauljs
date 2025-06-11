@@ -41,7 +41,7 @@ function generateStyles(props) {
 }
 
 function render(props = {}) {
-  const mergedProps = { ...defaultProps, ...props };
+  const mergedProps = Object.assign({}, defaultProps, props);
   const links = mergedProps.links.map(link => 
     `<a href="${link.url}" class="pauljs-footer-link">${link.text}</a>`
   ).join('');
@@ -60,6 +60,7 @@ function render(props = {}) {
 }
 
 function react(props = {}) {
+  const mergedProps = Object.assign({}, defaultProps, props);
   return {
     component: ({
       companyName,
@@ -67,7 +68,7 @@ function react(props = {}) {
       links,
       backgroundColor,
       textColor
-    } = { ...defaultProps, ...props }) => `
+    } = mergedProps) => `
       const styles = ${JSON.stringify(generateStyles({ backgroundColor, textColor }))};
       
       return (
