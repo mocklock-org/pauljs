@@ -30,15 +30,21 @@ class PaulJS {
   }
 
   async createPage(route, options = {}) {
-    const pageData = {
-      title: options.title || 'PaulJS Page',
-      description: options.description || 'Built with PaulJS',
-      styles: options.styles || '',
-      scripts: options.scripts || '',
+    const defaultOptions = {
+      title: 'PaulJS Page',
+      description: 'Built with PaulJS',
+      styles: '',
+      scripts: '',
+      hero: {},
+      cta: {},
+      footer: {}
+    };
+
+    const pageData = Object.assign({}, defaultOptions, options, {
       hero: components.hero.render(options.hero || {}),
       cta: components.cta.render(options.cta || {}),
       footer: components.footer.render(options.footer || {})
-    };
+    });
 
     this.pages.set(route, pageData);
     this.app.get(route, (req, res) => {

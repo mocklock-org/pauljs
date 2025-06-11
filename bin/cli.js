@@ -72,7 +72,7 @@ const { components } = pauljs;
 function CustomHero(props) {
   return components.hero(Object.assign({}, props, {
     backgroundColor: '#f7fafc',
-    textColor: '#2d3748'
+    textColor: '#2d3748',
     // Add any custom styling or behavior
   }));
 }
@@ -87,7 +87,7 @@ const { components } = pauljs;
 function CustomCTA(props) {
   return components.cta(Object.assign({}, props, {
     backgroundColor: '#edf2f7',
-    textColor: '#2d3748'
+    textColor: '#2d3748',
     // Add any custom styling or behavior
   }));
 }
@@ -102,7 +102,7 @@ const { components } = pauljs;
 function CustomFooter(props) {
   return components.footer(Object.assign({}, props, {
     backgroundColor: '#2d3748',
-    textColor: '#f7fafc'
+    textColor: '#f7fafc',
     // Add any custom styling or behavior
   }));
 }
