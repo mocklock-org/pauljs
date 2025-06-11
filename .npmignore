@@ -1,0 +1,41 @@
+# Development files
+.git
+.github
+.gitignore
+.npmignore
+*.log
+*.pid
+*.seed
+
+# Test files
+__tests__
+test
+tests
+coverage
+
+# Build process
+scripts
+.babel*
+.eslint*
+.prettier*
+*.config.js
+tsconfig.json
+
+# IDE specific files
+.idea
+.vscode
+*.swp
+*.swo
+
+# Environment files
+.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db 

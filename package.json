@@ -10,8 +10,16 @@
   "scripts": {
     "start": "node src/index.js",
     "test": "jest",
-    "build": "node scripts/build.js"
+    "build": "node scripts/build.js",
+    "prepare": "npm run build"
   },
+  "files": [
+    "dist",
+    "src",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
   "keywords": [
     "landing-page",
     "framework",
@@ -21,6 +29,13 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mocklock-org/pauljs"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "dependencies": {
     "@babel/core": "^7.23.0",
     "@babel/preset-react": "^7.22.15",
