@@ -1,0 +1,12 @@
+{
+  "name": "droneswift",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "pauljs serve",
+    "build": "pauljs build",
+    "dev": "pauljs serve --watch"
+  },
+  "dependencies": {
+    "pauljs": "^1.0.4"
+  }
+}
