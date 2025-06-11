@@ -9,26 +9,78 @@ A lightweight framework for building fast landing pages. PaulJS provides modular
 - **Framework Agnostic**: Use standalone or integrate with React (more frameworks coming soon)
 - **Responsive Design**: Mobile-first components that look great on all devices
 - **Customizable**: Easy to style and modify to match your brand
-- **CLI Tools**: Quick scaffolding for new landing pages
+- **Built-in Server**: Development server with hot reloading
+- **Static Export**: Generate static HTML for production
+- **Routing Support**: Create multi-page landing sites easily
 
 ## Installation
 ```bash
-npm install pauljs
+npm install -g pauljs
 ```
 
 ## Quick Start
 
-1. Create a new landing page:
-   ```bash
-   npx pauljs init
-   ```
+1. Create a new project:
+```bash
+pauljs create my-landing-page
+cd my-landing-page
+npm install
+```
 
-2. Add individual components:
-   ```bash
-   npx pauljs add hero
-   npx pauljs add cta
-   npx pauljs add footer
-   ```
+2. Start development server:
+```bash
+npm run dev
+```
+
+3. Build for production:
+```bash
+npm run build
+```
+
+## Project Structure
+
+```
+my-landing-page/
+  ├── pages/
+  │   └── index.js      # Main page configuration
+  ├── public/           # Static assets (images, etc.)
+  ├── package.json
+  └── node_modules/
+```
+
+## Creating Pages
+
+```javascript
+// pages/index.js
+const pauljs = require('pauljs');
+const app = pauljs.createApp();
+
+// Create home page
+app.createPage('/', {
+  title: 'Welcome',
+  description: 'My awesome landing page',
+  hero: {
+    title: 'Welcome to My Site',
+    subtitle: 'The best landing page ever',
+    ctaText: 'Get Started',
+    ctaUrl: '#signup'
+  },
+  cta: {
+    title: 'Ready to Start?',
+    description: 'Join us today!',
+    primaryButtonText: 'Sign Up',
+    primaryButtonUrl: '/signup'
+  }
+});
+
+// Create additional pages
+app.createPage('/about', {
+  title: 'About Us',
+  // ... component configurations
+});
+
+module.exports = app;
+```
 
 ## Using Components
 
@@ -38,7 +90,7 @@ npm install pauljs
 const { components } = require('pauljs');
 
 // Render a hero section
-const heroHtml = components.hero.render({
+const heroHtml = components.hero({
   title: 'Welcome to My Site',
   subtitle: 'Build amazing landing pages quickly',
   ctaText: 'Get Started',
@@ -74,7 +126,7 @@ function App() {
 
 ### Hero Section
 ```javascript
-components.hero.render({
+components.hero({
   title: 'Your Title',
   subtitle: 'Your subtitle text',
   ctaText: 'Button Text',
@@ -86,9 +138,9 @@ components.hero.render({
 
 ### Call to Action (CTA)
 ```javascript
-components.cta.render({
+components.cta({
   title: 'Ready to Start?',
-  description: 'Join thousands of developers...',
+  description: 'Join thousands of users...',
   primaryButtonText: 'Get Started',
   primaryButtonUrl: '/signup',
   secondaryButtonText: 'Learn More',
@@ -98,7 +150,7 @@ components.cta.render({
 
 ### Footer
 ```javascript
-components.footer.render({
+components.footer({
   companyName: 'Your Company',
   links: [
     { text: 'About', url: '/about' },
@@ -107,17 +159,24 @@ components.footer.render({
 });
 ```
 
+## Development Commands
+
+- `npm run dev` - Start development server with hot reloading
+- `npm start` - Start production server
+- `npm run build` - Build static site for production
+
 ## Customization
 
 All components accept style overrides through props:
 
 ```javascript
-components.hero.render({
+components.hero({
   backgroundColor: '#000',
   textColor: '#fff',
   // ... other props
 });
 ```
+
 ## License
 
 MIT © 2025 MockLock

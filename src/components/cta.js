@@ -86,7 +86,6 @@ function render(props = {}) {
   `;
 }
 
-// React component factory
 function react(props = {}) {
   return {
     component: ({

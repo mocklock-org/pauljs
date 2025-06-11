@@ -1,13 +1,12 @@
 const fs = require('fs').promises;
 const path = require('path');
 const ejs = require('ejs');
+const express = require('express');
 
-// Import components
 const hero = require('./components/hero');
 const cta = require('./components/cta');
 const footer = require('./components/footer');
 
-// Import adapters
 const reactAdapter = require('./adapters/react');
 
 const components = {
@@ -16,61 +15,91 @@ const components = {
   footer
 };
 
-async function generatePage(templateName = 'default', options = {}) {
-  try {
-    // Read template
-    const templatePath = path.join(__dirname, 'templates', `${templateName}.ejs`);
-    const template = await fs.readFile(templatePath, 'utf-8');
+class PaulJS {
+  constructor() {
+    this.app = express();
+    this.pages = new Map();
+    this.setupMiddleware();
+  }
 
-    // Default data
-    const data = {
-      title: 'PaulJS Landing Page',
-      description: 'A beautiful landing page built with PaulJS',
-      styles: '',
-      scripts: '',
-      ...options,
-      // Render components
+  setupMiddleware() {
+    this.app.use(express.static('public'));
+    this.app.use(express.json());
+    this.app.set('view engine', 'ejs');
+    this.app.set('views', path.join(__dirname, 'templates'));
+  }
+
+  async createPage(route, options = {}) {
+    const pageData = {
+      title: options.title || 'PaulJS Page',
+      description: options.description || 'Built with PaulJS',
+      styles: options.styles || '',
+      scripts: options.scripts || '',
       hero: components.hero.render(options.hero || {}),
       cta: components.cta.render(options.cta || {}),
       footer: components.footer.render(options.footer || {})
     };
 
-    // Render template
-    const html = ejs.render(template, data);
+    this.pages.set(route, pageData);
+    this.app.get(route, (req, res) => {
+      res.render('default', pageData);
+    });
 
-    // Write output
-    const outputPath = path.join(process.cwd(), 'index.html');
-    await fs.writeFile(outputPath, html);
-
-    return outputPath;
-  } catch (error) {
-    throw new Error(`Error generating page: ${error.message}`);
+    return route;
   }
-}
 
-async function addComponent(componentName, outputDir = '.') {
-  try {
-    if (!components[componentName]) {
-      throw new Error(`Component "${componentName}" not found`);
+  async exportStaticSite(outputDir = 'dist') {
+    try {
+      await fs.mkdir(outputDir, { recursive: true });
+      
+      for (const [route, pageData] of this.pages) {
+        const templatePath = path.join(__dirname, 'templates', 'default.ejs');
+        const template = await fs.readFile(templatePath, 'utf-8');
+        const html = ejs.render(template, pageData);
+        
+        const outputPath = path.join(
+          process.cwd(), 
+          outputDir, 
+          route === '/' ? 'index.html' : `${route.slice(1)}.html`
+        );
+        
+        await fs.writeFile(outputPath, html);
+      }
+
+      return outputDir;
+    } catch (error) {
+      throw new Error(`Error exporting static site: ${error.message}`);
     }
+  }
 
-    const component = components[componentName];
-    const html = component.render();
-    
-    const outputPath = path.join(process.cwd(), outputDir, `${componentName}.html`);
-    await fs.writeFile(outputPath, html);
+  start(port = 3000) {
+    return new Promise((resolve) => {
+      this.server = this.app.listen(port, () => {
+        console.log(`🚀 PaulJS server running at http://localhost:${port}`);
+        resolve(this.server);
+      });
+    });
+  }
 
-    return outputPath;
-  } catch (error) {
-    throw new Error(`Error adding component: ${error.message}`);
+  stop() {
+    if (this.server) {
+      this.server.close();
+    }
   }
 }
 
-// Export the public API
+const componentFactory = (Component) => {
+  return (props = {}) => {
+    return Component.render(props);
+  };
+};
+
 module.exports = {
-  generatePage,
-  addComponent,
-  components,
+  createApp: () => new PaulJS(),
+  components: Object.keys(components).reduce((acc, key) => {
+    acc[key] = componentFactory(components[key]);
+    return acc;
+  }, {}),
   adapters: {
     react: reactAdapter
   }
