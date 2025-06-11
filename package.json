@@ -16,6 +16,7 @@
     "dist",
     "src",
     "bin",
+    "scripts",
     "README.md",
     "LICENSE"
   ],
