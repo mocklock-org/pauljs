@@ -19,6 +19,9 @@ program
   .option('-p, --port <port>', 'Port to run the server on', '3000')
   .action(async (options) => {
     try {
+      // Set up Babel transpilation for development
+      require('../scripts/register');
+
       const pagesDir = path.join(process.cwd(), 'pages');
       const indexPath = path.join(pagesDir, 'index.js');
 

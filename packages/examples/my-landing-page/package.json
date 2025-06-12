@@ -8,6 +8,6 @@
     "dev": "pauljs serve --watch"
   },
   "dependencies": {
-    "pauljs": "1.5.1"
+    "pauljs": "1.5.2"
   }
 }
