@@ -63,13 +63,15 @@ async function copyTemplates() {
 
 async function build() {
   try {
-    console.log(chalk.blue(' Starting build process...'));
+    console.log(chalk.blue('Starting build process...'));
 
+    // Clean dist directory
     if (fsSync.existsSync(DIST_DIR)) {
       await fs.rm(DIST_DIR, { recursive: true });
     }
     await ensureDir(DIST_DIR);
 
+    // Process JavaScript files
     console.log(chalk.yellow('Processing JavaScript files...'));
     const files = await fs.readdir(SRC_DIR, { recursive: true, withFileTypes: true });
     
@@ -85,12 +87,15 @@ async function build() {
       }
     }
 
+    // Copy templates
     console.log(chalk.yellow('Copying templates...'));
     await copyTemplates();
 
+    // Copy package files
     console.log(chalk.yellow('Copying package files...'));
     const pkgJson = require('../package.json');
     
+    // Clean up package.json for distribution
     delete pkgJson.devDependencies;
     delete pkgJson.scripts.dev;
     
@@ -105,12 +110,14 @@ async function build() {
     );
 
     console.log(chalk.green('✨ Build completed successfully!'));
+    return true;
   } catch (error) {
     console.error(chalk.red('Build failed:'), error);
     process.exit(1);
   }
 }
 
+// If running directly, execute build
 if (require.main === module) {
   build();
 }
