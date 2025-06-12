@@ -24,6 +24,7 @@ class PaulJS {
 
   setupMiddleware() {
     this.app.use(express.static('public'));
+    this.app.use('/styles', express.static(path.join(process.cwd(), 'styles')));
     this.app.use(express.json());
     this.app.set('view engine', 'ejs');
     this.app.set('views', path.join(__dirname, 'templates'));
