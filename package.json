@@ -1,10 +1,10 @@
 {
-  "name": "pauljs",
+  "name": "create-pauljs-app",
   "version": "1.3.2",
   "description": "A lightweight framework for building fast landing pages",
   "main": "src/index.js",
   "bin": {
-    "pauljs": "./bin/cli.js"
+    "create-pauljs-app": "./bin/cli.js"
   },
   "type": "commonjs",
   "scripts": {
@@ -18,14 +18,17 @@
     "bin",
     "scripts",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "template"
   ],
   "keywords": [
     "landing-page",
     "framework",
     "static-site",
     "javascript",
-    "template-engine"
+    "template-engine",
+    "create-pauljs-app",
+    "pauljs"
   ],
   "author": "",
   "license": "MIT",
@@ -38,21 +41,21 @@
   },
   "dependencies": {
     "@babel/core": "^7.23.0",
-    "@babel/preset-react": "^7.22.15",
     "@babel/plugin-syntax-jsx": "^7.22.5",
     "@babel/plugin-transform-modules-commonjs": "^7.22.15",
+    "@babel/preset-react": "^7.22.15",
+    "chalk": "^4.1.2",
+    "chokidar": "^3.5.3",
     "commander": "^11.0.0",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
-    "terser": "^5.24.0",
-    "chalk": "^4.1.2",
     "inquirer": "^8.2.6",
-    "chokidar": "^3.5.3"
+    "terser": "^5.24.0"
   },
   "devDependencies": {
     "jest": "^29.7.0",
     "nodemon": "^3.0.1",
-    "react": "^18.2.0"
+    "react": "^18.3.1"
   },
   "peerDependencies": {
     "react": ">=16.8.0"

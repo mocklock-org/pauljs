@@ -6,17 +6,91 @@ const chalk = require('chalk');
 const path = require('path');
 const fs = require('fs');
 const fsPromises = require('fs').promises;
+const { execSync } = require('child_process');
 const build = require('../scripts/build');
 
 const packageJson = require('../package.json');
 
-async function createProjectStructure(projectName, answers) {
-  await fsPromises.mkdir(projectName);
-  await fsPromises.mkdir(path.join(projectName, 'pages'));
-  await fsPromises.mkdir(path.join(projectName, 'components'));
-  await fsPromises.mkdir(path.join(projectName, 'styles'));
-  await fsPromises.mkdir(path.join(projectName, 'public'));
+async function createProjectStructure(projectPath, answers) {
+  const projectName = path.basename(projectPath);
 
+  console.log(chalk.blue('\nCreating your PaulJS project...'));
+  
+  if (!fs.existsSync(projectPath)) {
+    await fsPromises.mkdir(projectPath, { recursive: true });
+  }
+
+  const projectPackage = {
+    name: projectName,
+    version: '1.0.0',
+    private: true,
+    scripts: {
+      start: 'pauljs serve',
+      build: 'pauljs build',
+      dev: 'pauljs serve --watch'
+    },
+    dependencies: {
+      'pauljs': '^' + packageJson.version
+    }
+  };
+
+  const directories = [
+    'pages',
+    'components',
+    'styles',
+    'public'
+  ];
+
+  for (const dir of directories) {
+    await fsPromises.mkdir(path.join(projectPath, dir), { recursive: true });
+  }
+
+  const templateDir = path.join(__dirname, '..', 'template');
+  if (fs.existsSync(templateDir)) {
+    await copyTemplateFiles(templateDir, projectPath, answers);
+  } else {
+    await createDefaultFiles(projectPath, answers);
+  }
+
+  await fsPromises.writeFile(
+    path.join(projectPath, 'package.json'),
+    JSON.stringify(projectPackage, null, 2)
+  );
+
+  console.log(chalk.blue('\nInstalling dependencies...'));
+  try {
+    execSync('npm install', { 
+      cwd: projectPath, 
+      stdio: 'inherit'
+    });
+  } catch (error) {
+    console.error(chalk.red('\nFailed to install dependencies:'), error);
+    process.exit(1);
+  }
+}
+
+async function copyTemplateFiles(templateDir, targetDir, answers) {
+  const files = await fsPromises.readdir(templateDir, { withFileTypes: true });
+
+  for (const file of files) {
+    const srcPath = path.join(templateDir, file.name);
+    const destPath = path.join(targetDir, file.name);
+
+    if (file.isDirectory()) {
+      await fsPromises.mkdir(destPath, { recursive: true });
+      await copyTemplateFiles(srcPath, destPath, answers);
+    } else {
+      let content = await fsPromises.readFile(srcPath, 'utf8');
+      
+      content = content.replace(/\{\{projectName\}\}/g, answers.title)
+                      .replace(/\{\{description\}\}/g, answers.description);
+      
+      await fsPromises.writeFile(destPath, content);
+    }
+  }
+}
+
+async function createDefaultFiles(projectPath, answers) {
   const mainPage = `
 const pauljs = require('pauljs');
 const { components } = pauljs;
@@ -35,7 +109,6 @@ app.createPage('/', {
   title: '${answers.title}',
   description: '${answers.description}',
   
-  // Use custom components
   hero: CustomHero({
     title: '${answers.title}',
     subtitle: '${answers.description}',
@@ -65,7 +138,9 @@ app.createPage('/', {
 module.exports = app;
 `;
 
-  const customHeroComponent = `
+  const files = {
+    'pages/index.js': mainPage,
+    'components/CustomHero.js': `
 const pauljs = require('pauljs');
 const { components } = pauljs;
 
@@ -73,14 +148,12 @@ function CustomHero(props) {
   return components.hero(Object.assign({}, props, {
     backgroundColor: '#f7fafc',
     textColor: '#2d3748',
-    // Add any custom styling or behavior
   }));
 }
 
 module.exports = CustomHero;
-`;
-
-  const customCTAComponent = `
+`,
+    'components/CustomCTA.js': `
 const pauljs = require('pauljs');
 const { components } = pauljs;
 
@@ -88,14 +161,12 @@ function CustomCTA(props) {
   return components.cta(Object.assign({}, props, {
     backgroundColor: '#edf2f7',
     textColor: '#2d3748',
-    // Add any custom styling or behavior
   }));
 }
 
 module.exports = CustomCTA;
-`;
-
-  const customFooterComponent = `
+`,
+    'components/CustomFooter.js': `
 const pauljs = require('pauljs');
 const { components } = pauljs;
 
@@ -103,14 +174,12 @@ function CustomFooter(props) {
   return components.footer(Object.assign({}, props, {
     backgroundColor: '#2d3748',
     textColor: '#f7fafc',
-    // Add any custom styling or behavior
   }));
 }
 
 module.exports = CustomFooter;
-`;
-
-  const mainCSS = `
+`,
+    'styles/main.css': `
 /* Custom styles for your landing page */
 :root {
   --primary-color: #3182ce;
@@ -131,40 +200,26 @@ module.exports = CustomFooter;
 .pauljs-footer {
   /* Your custom footer styles */
 }
-`;
-
-  await fsPromises.writeFile(path.join(projectName, 'pages', 'index.js'), mainPage);
-  await fsPromises.writeFile(path.join(projectName, 'components', 'CustomHero.js'), customHeroComponent);
-  await fsPromises.writeFile(path.join(projectName, 'components', 'CustomCTA.js'), customCTAComponent);
-  await fsPromises.writeFile(path.join(projectName, 'components', 'CustomFooter.js'), customFooterComponent);
-  await fsPromises.writeFile(path.join(projectName, 'styles', 'main.css'), mainCSS);
-
-  const pkg = {
-    name: projectName,
-    version: '1.0.0',
-    scripts: {
-      start: 'pauljs serve',
-      build: 'pauljs build',
-      dev: 'pauljs serve --watch'
-    },
-    dependencies: {
-      pauljs: `^${packageJson.version}`
-    }
-  };
-
-  await fsPromises.writeFile(
-    path.join(projectName, 'package.json'),
-    JSON.stringify(pkg, null, 2)
-  );
-
-  const readme = `
+`,
+    'README.md': `
 # ${answers.title}
 
 ${answers.description}
 
-## Project Structure
+## Getting Started
+
+First, run the development server:
+
+\`\`\`bash
+npm run dev
 \`\`\`
-${projectName}/
+
+Open [http://localhost:3000](http://localhost:3000) to see your landing page.
+
+## Project Structure
+
+\`\`\`
+${path.basename(projectPath)}/
   ├── pages/          # Page configurations
   │   └── index.js    # Main page
   ├── components/     # Custom components
@@ -176,129 +231,66 @@ ${projectName}/
   └── public/        # Static assets
 \`\`\`
 
-## Development
+## Learn More
 
-\`\`\`bash
-# Start development server
-npm run dev
+To learn more about PaulJS, check out the [PaulJS documentation](https://github.com/mocklock-org/pauljs).
+`
+  };
 
-# Build for production
-npm run build
-
-# Start production server
-npm start
-\`\`\`
-`;
-
-  await fsPromises.writeFile(path.join(projectName, 'README.md'), readme);
+  for (const [filePath, content] of Object.entries(files)) {
+    const fullPath = path.join(projectPath, filePath);
+    await fsPromises.mkdir(path.dirname(fullPath), { recursive: true });
+    await fsPromises.writeFile(fullPath, content);
+  }
 }
 
-program
-  .version(packageJson.version)
-  .description('PaulJS CLI - Create beautiful landing pages quickly');
+async function init() {
+  console.log(chalk.bold('\nWelcome to PaulJS! 🚀'));
+  console.log('Let\'s create your new landing page project.\n');
 
-program
-  .command('create <project-name>')
-  .description('Create a new PaulJS project')
-  .action(async (projectName) => {
-    console.log(chalk.blue(`Creating new PaulJS project: ${projectName}`));
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'projectPath',
+      message: 'Where would you like to create your project?',
+      default: './my-landing-page'
+    },
+    {
+      type: 'input',
+      name: 'title',
+      message: 'What is your site title?',
+      default: 'My Landing Page'
+    },
+    {
+      type: 'input',
+      name: 'description',
+      message: 'Enter a brief description:',
+      default: 'A beautiful landing page built with PaulJS'
+    }
+  ]);
+
+  const projectPath = path.resolve(answers.projectPath);
+
+  try {
+    await createProjectStructure(projectPath, answers);
+
+    console.log(chalk.green('\n✨ Project created successfully!'));
+    console.log(chalk.yellow('\nNext steps:'));
+    console.log(chalk.white(`  cd ${path.relative(process.cwd(), projectPath)}`));
+    console.log(chalk.white('  npm run dev'));
     
-    const answers = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'title',
-        message: 'What is your site title?',
-        default: 'My Landing Page'
-      },
-      {
-        type: 'input',
-        name: 'description',
-        message: 'Enter a brief description:',
-        default: 'A beautiful landing page built with PaulJS'
-      }
-    ]);
+    console.log(chalk.blue('\nHappy coding! 🎉'));
+  } catch (error) {
+    console.error(chalk.red('Error creating project:', error.message));
+    process.exit(1);
+  }
+}
 
-    try {
-      await createProjectStructure(projectName, answers);
-
-      console.log(chalk.green('\n✨ Project created successfully!'));
-      console.log(chalk.yellow('\nProject structure:'));
-      console.log(chalk.white(`  ${projectName}/`));
-      console.log(chalk.white('    ├── pages/'));
-      console.log(chalk.white('    ├── components/'));
-      console.log(chalk.white('    ├── styles/'));
-      console.log(chalk.white('    └── public/'));
-      console.log(chalk.yellow('\nNext steps:'));
-      console.log(chalk.white(`  cd ${projectName}`));
-      console.log(chalk.white('  npm install'));
-      console.log(chalk.white('  npm run dev'));
-    } catch (error) {
-      console.error(chalk.red('Error creating project:', error.message));
-      process.exit(1);
-    }
-  });
-
-program
-  .command('serve')
-  .description('Start the development server')
-  .option('--watch', 'Watch for file changes')
-  .option('-p, --port <port>', 'Port to run the server on', '3000')
-  .action(async (options) => {
-    try {
-      const pagesDir = path.join(process.cwd(), 'pages');
-      const indexPath = path.join(pagesDir, 'index.js');
-
-      if (!fs.existsSync(indexPath)) {
-        console.error(chalk.red('Error: Could not find pages/index.js'));
-        console.log(chalk.yellow('Make sure you are in a PaulJS project directory'));
-        process.exit(1);
-      }
-
-      const app = require(indexPath);
-      
-      if (options.watch) {
-        const chokidar = require('chokidar');
-        const watcher = chokidar.watch(['pages/**/*.js', 'public/**/*'], {
-          ignored: /(^|[\/\\])\../,
-          persistent: true
-        });
-
-        watcher.on('change', (path) => {
-          console.log(chalk.yellow(`File ${path} changed, reloading...`));
-          delete require.cache[require.resolve(indexPath)];
-          try {
-            const newApp = require(indexPath);
-            if (app.stop) app.stop();
-            newApp.start(parseInt(options.port));
-          } catch (error) {
-            console.error(chalk.red('Error reloading application:', error.message));
-          }
-        });
-      }
-
-      await app.start(parseInt(options.port));
-      console.log(chalk.green(`Server running at http://localhost:${options.port}`));
-      
-      if (options.watch) {
-        console.log(chalk.blue('Watching for file changes...'));
-      }
-    } catch (error) {
-      console.error(chalk.red('Error starting server:', error.message));
-      process.exit(1);
-    }
-  });
-
-program
-  .command('build')
-  .description('Build the PaulJS package')
-  .action(async () => {
-    try {
-      await build();
-      console.log(chalk.green('✨ Package built successfully!'));
-    } catch (error) {
-      console.error(chalk.red('Error building package:', error.message));
-      process.exit(1);
-    }
-  });
-
-program.parse(process.argv); 
+if (require.main === module) {
+  init();
+} else {
+  module.exports = {
+    createProjectStructure,
+    build
+  };
+} 

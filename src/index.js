@@ -2,24 +2,24 @@ const fs = require('fs').promises;
 const path = require('path');
 const ejs = require('ejs');
 const express = require('express');
-
-const hero = require('./components/hero');
-const cta = require('./components/cta');
-const footer = require('./components/footer');
-
-const reactAdapter = require('./adapters/react');
-
-const components = {
-  hero,
-  cta,
-  footer
-};
+const PaulJSCore = require('./core');
 
 class PaulJS {
   constructor() {
     this.app = express();
     this.pages = new Map();
+    this.core = new PaulJSCore();
+    
     this.setupMiddleware();
+    this.initializeCore();
+  }
+
+  async initializeCore() {
+    try {
+      this.core.loadBuiltInComponents();
+    } catch (error) {
+      throw new Error(`Failed to initialize PaulJS: ${error.message}`);
+    }
   }
 
   setupMiddleware() {
@@ -30,28 +30,35 @@ class PaulJS {
   }
 
   async createPage(route, options = {}) {
-    const defaultOptions = {
-      title: 'PaulJS Page',
-      description: 'Built with PaulJS',
-      styles: '',
-      scripts: '',
-      hero: {},
-      cta: {},
-      footer: {}
-    };
+    try {
+      const defaultOptions = {
+        title: 'PaulJS Page',
+        description: 'Built with PaulJS',
+        styles: '',
+        scripts: '',
+        hero: {},
+        cta: {},
+        footer: {}
+      };
 
-    const pageData = Object.assign({}, defaultOptions, options, {
-      hero: components.hero.render(options.hero || {}),
-      cta: components.cta.render(options.cta || {}),
-      footer: components.footer.render(options.footer || {})
-    });
+      const pageData = {
+        ...defaultOptions,
+        ...options,
+        hero: this.core.getComponent('hero').render(options.hero || {}),
+        cta: this.core.getComponent('cta').render(options.cta || {}),
+        footer: this.core.getComponent('footer').render(options.footer || {})
+      };
 
-    this.pages.set(route, pageData);
-    this.app.get(route, (req, res) => {
-      res.render('default', pageData);
-    });
+      this.pages.set(route, pageData);
+      
+      this.app.get(route, (req, res) => {
+        res.render('default', pageData);
+      });
 
-    return route;
+      return route;
+    } catch (error) {
+      throw new Error(`Failed to create page ${route}: ${error.message}`);
+    }
   }
 
   async exportStaticSite(outputDir = 'dist') {
@@ -79,11 +86,15 @@ class PaulJS {
   }
 
   start(port = 3000) {
-    return new Promise((resolve) => {
-      this.server = this.app.listen(port, () => {
-        console.log(`🚀 PaulJS server running at http://localhost:${port}`);
-        resolve(this.server);
-      });
+    return new Promise((resolve, reject) => {
+      try {
+        this.server = this.app.listen(port, () => {
+          console.log(`🚀 PaulJS server running at http://localhost:${port}`);
+          resolve(this.server);
+        });
+      } catch (error) {
+        reject(new Error(`Failed to start server: ${error.message}`));
+      }
     });
   }
 
@@ -94,19 +105,27 @@ class PaulJS {
   }
 }
 
+// Factory function to create components with validation
 const componentFactory = (Component) => {
   return (props = {}) => {
-    return Component.render(props);
+    try {
+      return Component.render(props);
+    } catch (error) {
+      throw new Error(`Component render failed: ${error.message}`);
+    }
   };
 };
 
+const core = new PaulJSCore();
+core.loadBuiltInComponents();
+
 module.exports = {
   createApp: () => new PaulJS(),
-  components: Object.keys(components).reduce((acc, key) => {
-    acc[key] = componentFactory(components[key]);
+  components: Array.from(core.components.entries()).reduce((acc, [key, component]) => {
+    acc[key] = componentFactory(component);
     return acc;
   }, {}),
   adapters: {
-    react: reactAdapter
+    react: require('./adapters/react')
   }
 }; 

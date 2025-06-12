@@ -13,29 +13,32 @@ A lightweight framework for building fast landing pages. PaulJS provides modular
 - **Static Export**: Generate static HTML for production
 - **Routing Support**: Create multi-page landing sites easily
 
-## Installation
-```bash
-npm install -g pauljs
-```
-
 ## Quick Start
 
-1. Create a new project:
+Create a new project with a single command:
+
 ```bash
-pauljs create my-landing-page
-cd my-landing-page
-npm install
+npx create-pauljs-app
 ```
 
-2. Start development server:
+That's it! Just follow the interactive prompts to:
+1. Choose your project name and location
+2. Set your site title and description
+3. Customize your landing page
+
+The CLI will automatically:
+1. Create your project directory
+2. Set up the file structure
+3. Install all dependencies
+4. Configure your development environment
+
+Once created, you can start developing:
 ```bash
-npm run dev
+cd my-landing-page  # Or your chosen project name
+npm run dev         # Start development server
 ```
 
-3. Build for production:
-```bash
-npm run build
-```
+Visit `http://localhost:3000` to see your landing page!
 
 ## Project Structure
 
