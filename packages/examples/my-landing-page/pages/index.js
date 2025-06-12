@@ -16,7 +16,6 @@ app.createPage('/', {
   title: 'My Landing Page',
   description: 'A beautiful landing page built with PaulJS',
   
-  // Use custom components
   hero: CustomHero({
     title: 'My Landing Page',
     subtitle: 'A beautiful landing page built with PaulJS',

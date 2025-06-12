@@ -3,7 +3,18 @@
 
 A beautiful landing page built with PaulJS
 
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to see your landing page.
+
 ## Project Structure
+
 ```
 my-landing-page/
   ├── pages/          # Page configurations
@@ -17,15 +28,6 @@ my-landing-page/
   └── public/        # Static assets
 ```
 
-## Development
+## Learn More
 
-```bash
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
-```
+To learn more about PaulJS, check out the [PaulJS documentation](https://github.com/mocklock-org/pauljs).

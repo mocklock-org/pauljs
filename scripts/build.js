@@ -23,16 +23,19 @@ async function copyFile(src, dest) {
 async function processJavaScript(filePath, outPath) {
   const source = await fs.readFile(filePath, 'utf8');
   
-  const result = await babel.transformAsync(source, {
-    presets: ['@babel/preset-react'],
-    plugins: [
-      '@babel/plugin-syntax-jsx',
-      ['@babel/plugin-transform-modules-commonjs', { strict: true }]
-    ],
+  // First pass: Transform modern JavaScript features
+  const babelResult = await babel.transformAsync(source, {
     filename: filePath,
+    sourceMaps: false,
+    configFile: path.join(__dirname, '..', 'babel.config.js')
   });
 
-  const minified = await minify(result.code, {
+  if (!babelResult || !babelResult.code) {
+    throw new Error(`Failed to transform ${filePath}`);
+  }
+
+  // Second pass: Minify the code
+  const minified = await minify(babelResult.code, {
     compress: {
       dead_code: true,
       drop_console: process.env.NODE_ENV === 'production',
@@ -96,12 +99,22 @@ async function build() {
     const pkgJson = require('../package.json');
     
     // Clean up package.json for distribution
-    delete pkgJson.devDependencies;
-    delete pkgJson.scripts.dev;
+    const distPkg = {
+      ...pkgJson,
+      main: 'index.js',
+      types: 'index.d.ts',
+      scripts: {
+        start: pkgJson.scripts.start
+      }
+    };
+    
+    delete distPkg.devDependencies;
+    delete distPkg.scripts.dev;
+    delete distPkg.scripts.build;
     
     await fs.writeFile(
       path.join(DIST_DIR, 'package.json'),
-      JSON.stringify(pkgJson, null, 2)
+      JSON.stringify(distPkg, null, 2)
     );
     
     await copyFile(

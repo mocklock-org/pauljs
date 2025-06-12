@@ -1,12 +1,13 @@
 {
   "name": "my-landing-page",
   "version": "1.0.0",
+  "private": true,
   "scripts": {
     "start": "pauljs serve",
     "build": "pauljs build",
     "dev": "pauljs serve --watch"
   },
   "dependencies": {
-    "pauljs": "^1.3.2"
+    "pauljs": "1.5.1"
   }
 }
