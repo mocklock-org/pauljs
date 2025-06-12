@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// Load CSS handler first
+require('../scripts/css-handler');
+
 const { program } = require('commander');
 const chalk = require('chalk');
 const path = require('path');
