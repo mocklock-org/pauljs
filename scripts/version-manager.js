@@ -26,11 +26,13 @@ function getContributors() {
     let gitCommand = 'git log --format="%aN"';
     try {
       const lastTag = execSync('git describe --tags --abbrev=0').toString().trim();
+      console.log(`Found last tag: ${lastTag}`);
       gitCommand = `git log ${lastTag}..HEAD --format="%aN"`;
     } catch (e) {
-      // No tags exist, will get all contributors
+      console.log('No tags found, will get all contributors');
     }
     
+    console.log(`Running git command: ${gitCommand}`);
     const contributors = execSync(gitCommand)
       .toString()
       .trim()
@@ -38,6 +40,7 @@ function getContributors() {
       .filter(name => name && !name.includes('[bot]') && !name.includes('Automated'))
       .filter((name, index, self) => self.indexOf(name) === index);
 
+    console.log(`Found contributors: ${contributors.join(', ')}`);
     return contributors;
   } catch (error) {
     console.warn('Warning: Could not fetch contributors:', error.message);
@@ -47,20 +50,23 @@ function getContributors() {
 
 function getCommitsByType() {
   try {
-    // Get commits, falling back to all commits if no tags exist
     let gitCommand = 'git log --no-merges --pretty=format:"%s|%aN"';
     try {
       const lastTag = execSync('git describe --tags --abbrev=0').toString().trim();
+      console.log(`Found last tag: ${lastTag}`);
       gitCommand = `git log ${lastTag}..HEAD --no-merges --pretty=format:"%s|%aN"`;
     } catch (e) {
-      // No tags exist, will get all commits
+      console.log('No tags found, will get all commits');
     }
 
+    console.log(`Running git command: ${gitCommand}`);
     const commits = execSync(gitCommand)
       .toString()
       .trim()
       .split('\n')
       .filter(line => line && !line.includes('[skip ci]'));
+
+    console.log(`Found ${commits.length} commits to process`);
 
     const changes = {
       features: [],
