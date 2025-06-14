@@ -68,7 +68,6 @@ function getCommitsByType() {
 
       const entry = `${cleanMessage} (by @${author})`;
 
-      // Match conventional commit types
       if (message.match(/^feat(\([^)]+\))?:/)) {
         changes.features.push(entry);
       } else if (message.match(/^fix(\([^)]+\))?:/) || message.includes('[bug]')) {
@@ -190,7 +189,6 @@ function generateChangelogEntry(version, tag) {
     changelog += '\n';
   }
 
-  // Installation section
   changelog += `## Installation\n\n`;
   changelog += '```bash\n';
   changelog += `npm install pauljs@${tag}\n`;

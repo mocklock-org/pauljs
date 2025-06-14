@@ -18,6 +18,9 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_branch }}
       
       - uses: actions/setup-node@v4
         with:
@@ -61,15 +64,25 @@ jobs:
           else
             echo "tag=latest" >> $GITHUB_OUTPUT
           fi
+          echo "Current version: $VERSION"
+          echo "Selected tag: ${{ steps.determine-tag.outputs.tag }}"
       
       - name: Publish to npm
         run: |
-          npm publish --provenance --access public --tag ${{ steps.determine-tag.outputs.tag }}
+          # Ensure we're publishing the version that was just created
+          git fetch --tags
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          LATEST_VERSION=${LATEST_TAG#v}
           
-          # For experimental builds, also tag as wormhole
-          if [[ $(node -p "require('./package.json').version") == *"-alpha"* ]]; then
-            npm dist-tag add pauljs@$(node -p "require('./package.json').version") wormhole
-          fi
+          echo "Latest tag: $LATEST_TAG"
+          echo "Latest version: $LATEST_VERSION"
+          echo "Package.json version: $(node -p "require('./package.json').version")"
+          
+          # Update package.json to match the latest tag
+          npm version $LATEST_VERSION --no-git-tag-version --allow-same-version
+          
+          # Publish with provenance
+          npm publish --provenance --access public --tag ${{ steps.determine-tag.outputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           
