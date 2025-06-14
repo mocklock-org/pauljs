@@ -43,6 +43,8 @@ class PaulJSCore {
 
   clearCache() {
     this.customComponents.clear();
+    this.components.clear();
+    this.loadBuiltInComponents();
   }
 }
 

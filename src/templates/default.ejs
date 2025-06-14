@@ -24,9 +24,9 @@
   <%- styles %>
 </head>
 <body>
-  <%- hero %>
-  <%- cta %>
-  <%- footer %>
+  <% if (hero) { %><%- hero %><% } %>
+  <% if (cta) { %><%- cta %><% } %>
+  <% if (footer) { %><%- footer %><% } %>
   <%- scripts %>
 </body>
 </html> 

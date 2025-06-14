@@ -47,9 +47,9 @@ class PaulJS {
       const pageData = {
         ...defaultOptions,
         ...options,
-        hero: this.core.getComponent('hero').render(options.hero || {}),
-        cta: this.core.getComponent('cta').render(options.cta || {}),
-        footer: this.core.getComponent('footer').render(options.footer || {})
+        hero: options.hero !== null && options.hero !== '' ? this.core.getComponent('hero').render(options.hero || {}) : '',
+        cta: options.cta !== null && options.cta !== '' ? this.core.getComponent('cta').render(options.cta || {}) : '',
+        footer: options.footer !== null && options.footer !== '' ? this.core.getComponent('footer').render(options.footer || {}) : ''
       };
 
       this.pages.set(route, pageData);
@@ -57,9 +57,9 @@ class PaulJS {
       this.app.get(route, (req, res) => {
         const freshPageData = {
           ...pageData,
-          hero: this.core.getComponent('hero').render(options.hero || {}),
-          cta: this.core.getComponent('cta').render(options.cta || {}),
-          footer: this.core.getComponent('footer').render(options.footer || {})
+          hero: options.hero !== null && options.hero !== '' ? this.core.getComponent('hero').render(options.hero || {}) : '',
+          cta: options.cta !== null && options.cta !== '' ? this.core.getComponent('cta').render(options.cta || {}) : '',
+          footer: options.footer !== null && options.footer !== '' ? this.core.getComponent('footer').render(options.footer || {}) : ''
         };
         res.render('default', freshPageData);
       });
@@ -120,28 +120,38 @@ class PaulJS {
   clearComponentCache() {
     this.core.clearCache();
   }
+
+  getComponents() {
+    return this.core.components;
+  }
 }
 
 // Factory function to create components with dynamic updates
-const componentFactory = (Component, core) => {
+const componentFactory = (name, component, core) => {
   return (props = {}) => {
     try {
-      // Get the latest version of the component
-      const latestComponent = core.getComponent(Component.name);
-      return latestComponent.render(props);
+      // Handle null/empty component case
+      if (props === null || props === '') {
+        return '';
+      }
+      
+      // Get the component's default props
+      const defaultProps = component.defaultProps || {};
+      // Merge props, ensuring custom props override defaults
+      const mergedProps = { ...defaultProps, ...props };
+      return component.render(mergedProps);
     } catch (error) {
-      throw new Error(`Component render failed: ${error.message}`);
+      throw new Error(`Component ${name} render failed: ${error.message}`);
     }
   };
 };
 
-const core = new PaulJSCore();
-core.loadBuiltInComponents();
+const pauljs = new PaulJS();
 
 module.exports = {
-  createApp: () => new PaulJS(),
-  components: Array.from(core.components.entries()).reduce((acc, [key, component]) => {
-    acc[key] = componentFactory(component, core);
+  createApp: () => pauljs,
+  components: Array.from(pauljs.getComponents().entries()).reduce((acc, [name, component]) => {
+    acc[name] = componentFactory(name, component, pauljs.core);
     return acc;
   }, {}),
   adapters: {
