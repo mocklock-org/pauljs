@@ -1,0 +1,21 @@
+
+/* Custom styles for your landing page */
+:root {
+  --primary-color: #3182ce;
+  --secondary-color: #2d3748;
+  --background-color: #ffffff;
+  --text-color: #2d3748;
+}
+
+/* Override PaulJS component styles */
+.pauljs-hero {
+  /* Your custom hero styles */
+}
+
+.pauljs-cta {
+  /* Your custom CTA styles */
+}
+
+.pauljs-footer {
+  /* Your custom footer styles */
+}

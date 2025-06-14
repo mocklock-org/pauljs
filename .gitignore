@@ -6,3 +6,6 @@ test-site
 
 # build
 build
+
+# packages
+packages/examples

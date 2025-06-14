@@ -39,9 +39,37 @@ jobs:
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Determine Tag
+        id: determine-tag
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [[ $VERSION == *"-alpha"* ]] && [[ $VERSION =~ ^1\. ]]; then
+            echo "tag=wormhole" >> $GITHUB_OUTPUT
+          elif [[ $VERSION == *"-beta"* ]] && [[ $VERSION =~ ^2\. ]]; then
+            echo "tag=event-horizon" >> $GITHUB_OUTPUT
+          elif [[ $VERSION =~ ^3\. ]]; then
+            echo "tag=neutron" >> $GITHUB_OUTPUT
+          elif [[ $VERSION =~ ^4\. ]]; then
+            echo "tag=quasar" >> $GITHUB_OUTPUT
+          elif [[ $VERSION =~ ^5\. ]]; then
+            echo "tag=nova" >> $GITHUB_OUTPUT
+          elif [[ $VERSION =~ ^6\. ]]; then
+            echo "tag=cosmos-2025" >> $GITHUB_OUTPUT
+          elif [[ $VERSION =~ ^7\. ]]; then
+            echo "tag=singularity" >> $GITHUB_OUTPUT
+          else
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
       
       - name: Publish to npm
-        run: npm publish --provenance --access public
+        run: |
+          npm publish --provenance --access public --tag ${{ steps.determine-tag.outputs.tag }}
+          
+          # For experimental builds, also tag as wormhole
+          if [[ $(node -p "require('./package.json').version") == *"-alpha"* ]]; then
+            npm dist-tag add pauljs@$(node -p "require('./package.json').version") wormhole
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           
@@ -49,4 +77,5 @@ jobs:
         run: |
           echo "Package published successfully"
           echo "Version: $(node -p "require('./package.json').version")"
-          echo "Name: $(node -p "require('./package.json').name")" 
+          echo "Name: $(node -p "require('./package.json').name")"
+          echo "Tag: ${{ steps.determine-tag.outputs.tag }}" 

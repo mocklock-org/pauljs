@@ -29,29 +29,48 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
       
-      - name: Generate Release Notes
+      - name: Determine Version Type
+        id: version-type
         run: |
-          echo "## What's Changed" > RELEASE_NOTES.md
-          git log $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD^)..HEAD --pretty=format:"* %s" >> RELEASE_NOTES.md
+          if [[ "${{ github.event.head_commit.message }}" == *"[wormhole]"* ]]; then
+            echo "type=alpha" >> $GITHUB_OUTPUT
+            echo "tag=wormhole" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.head_commit.message }}" == *"[beta]"* ]]; then
+            echo "type=beta" >> $GITHUB_OUTPUT
+            echo "tag=event-horizon" >> $GITHUB_OUTPUT
+          else
+            echo "type=release" >> $GITHUB_OUTPUT
+            echo "tag=neutron" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate Version
+        id: generate-version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          if [[ "${{ steps.version-type.outputs.type }}" == "alpha" ]]; then
+            NEW_VERSION=$(npx semver $CURRENT_VERSION -i prerelease --preid alpha)
+          elif [[ "${{ steps.version-type.outputs.type }}" == "beta" ]]; then
+            NEW_VERSION=$(npx semver $CURRENT_VERSION -i prerelease --preid beta)
+          else
+            NEW_VERSION=$(npx semver $CURRENT_VERSION -i patch)
+          fi
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update Version
+        run: |
+          npm version ${{ steps.generate-version.outputs.version }} -m "ci: bump version to %s [${{ steps.version-type.outputs.tag }}]"
       
-      - name: Conventional Version Bump
-        id: version-bump
-        uses: phips28/gh-action-bump-version@v10.1.1
-        with:
-          tag-prefix: 'v'
-          commit-message: 'ci: bump version to {{version}} [skip ci]'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+      - name: Generate Release Notes
+        run: node scripts/version-manager.js
+      
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
-        if: steps.version-bump.outputs.newTag
         with:
-          tag_name: ${{ steps.version-bump.outputs.newTag }}
-          name: Release ${{ steps.version-bump.outputs.newTag }}
-          body_path: RELEASE_NOTES.md
+          tag_name: v${{ steps.generate-version.outputs.version }}
+          name: Release v${{ steps.generate-version.outputs.version }} [${{ steps.version-type.outputs.tag }}]
+          body_path: CHANGELOG.md
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.version-type.outputs.type != 'release' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

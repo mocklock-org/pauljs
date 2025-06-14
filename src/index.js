@@ -42,6 +42,8 @@ class PaulJS {
         footer: {}
       };
 
+      this.clearComponentCache();
+
       const pageData = {
         ...defaultOptions,
         ...options,
@@ -53,7 +55,13 @@ class PaulJS {
       this.pages.set(route, pageData);
       
       this.app.get(route, (req, res) => {
-        res.render('default', pageData);
+        const freshPageData = {
+          ...pageData,
+          hero: this.core.getComponent('hero').render(options.hero || {}),
+          cta: this.core.getComponent('cta').render(options.cta || {}),
+          footer: this.core.getComponent('footer').render(options.footer || {})
+        };
+        res.render('default', freshPageData);
       });
 
       return route;
@@ -104,13 +112,23 @@ class PaulJS {
       this.server.close();
     }
   }
+
+  registerComponent(name, component) {
+    this.core.registerComponent(name, component);
+  }
+
+  clearComponentCache() {
+    this.core.clearCache();
+  }
 }
 
-// Factory function to create components with validation
-const componentFactory = (Component) => {
+// Factory function to create components with dynamic updates
+const componentFactory = (Component, core) => {
   return (props = {}) => {
     try {
-      return Component.render(props);
+      // Get the latest version of the component
+      const latestComponent = core.getComponent(Component.name);
+      return latestComponent.render(props);
     } catch (error) {
       throw new Error(`Component render failed: ${error.message}`);
     }
@@ -123,7 +141,7 @@ core.loadBuiltInComponents();
 module.exports = {
   createApp: () => new PaulJS(),
   components: Array.from(core.components.entries()).reduce((acc, [key, component]) => {
-    acc[key] = componentFactory(component);
+    acc[key] = componentFactory(component, core);
     return acc;
   }, {}),
   adapters: {
