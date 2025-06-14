@@ -25,11 +25,12 @@ function getContributors() {
   try {
     let gitCommand = 'git log --format="%aN"';
     try {
-      const lastTag = execSync('git describe --tags --abbrev=0').toString().trim();
-      console.log(`Found last tag: ${lastTag}`);
+      // Get the previous tag, not the current one
+      const lastTag = execSync('git describe --tags --abbrev=0 HEAD^').toString().trim();
+      console.log(`Found previous tag: ${lastTag}`);
       gitCommand = `git log ${lastTag}..HEAD --format="%aN"`;
     } catch (e) {
-      console.log('No tags found, will get all contributors');
+      console.log('No previous tag found, getting all contributors');
     }
     
     console.log(`Running git command: ${gitCommand}`);
@@ -50,13 +51,15 @@ function getContributors() {
 
 function getCommitsByType() {
   try {
+    // Get all commits since the last tag, including the current one
     let gitCommand = 'git log --no-merges --pretty=format:"%s|%aN"';
     try {
-      const lastTag = execSync('git describe --tags --abbrev=0').toString().trim();
-      console.log(`Found last tag: ${lastTag}`);
+      // Get the previous tag, not the current one
+      const lastTag = execSync('git describe --tags --abbrev=0 HEAD^').toString().trim();
+      console.log(`Found previous tag: ${lastTag}`);
       gitCommand = `git log ${lastTag}..HEAD --no-merges --pretty=format:"%s|%aN"`;
     } catch (e) {
-      console.log('No tags found, will get all commits');
+      console.log('No previous tag found, getting all commits');
     }
 
     console.log(`Running git command: ${gitCommand}`);
@@ -64,9 +67,10 @@ function getCommitsByType() {
       .toString()
       .trim()
       .split('\n')
-      .filter(line => line && !line.includes('[skip ci]'));
+      .filter(line => line && !line.includes('[skip ci]') && !line.startsWith('release:'));
 
     console.log(`Found ${commits.length} commits to process`);
+    console.log('Commits:', commits);
 
     const changes = {
       features: [],
@@ -81,6 +85,8 @@ function getCommitsByType() {
 
     commits.forEach(commit => {
       const [message, author] = commit.split('|');
+      console.log(`Processing commit: "${message}" by ${author}`);
+      
       const cleanMessage = message
         .replace(/\[wormhole\]/g, '')
         .replace(/\[alpha\]/g, '')
@@ -113,6 +119,13 @@ function getCommitsByType() {
         changes.updates.push(entry);
       } else if (!message.startsWith('ci:')) {
         changes.other.push(entry);
+      }
+    });
+
+    // Log what we found
+    Object.entries(changes).forEach(([type, entries]) => {
+      if (entries.length > 0) {
+        console.log(`Found ${entries.length} ${type}:`, entries);
       }
     });
 
