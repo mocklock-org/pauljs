@@ -132,15 +132,12 @@ jobs:
           
           echo "Committing changes..."
           git commit -m "release: version ${{ steps.generate-version.outputs.version }} [${{ steps.version-type.outputs.tag }}]" || echo "No changes to commit"
-          
-          echo "Creating tag..."
-          git tag -a "v${{ steps.generate-version.outputs.version }}" -m "Version ${{ steps.generate-version.outputs.version }} [${{ steps.version-type.outputs.tag }}]"
       
       - name: Push Changes
         run: |
           echo "Pushing changes to remote..."
           remote_repo="https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git push "${remote_repo}" HEAD:main --tags --force
+          git push "${remote_repo}" HEAD:main
           echo "Changes pushed successfully"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
