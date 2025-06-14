@@ -1,9 +1,12 @@
-# 1.10.4-alpha.0 [wormhole] - 2025-06-14
+# 1.11.1-alpha.0 [wormhole] - 2025-06-14
 
 ## What's Changed
 
-### Bug Fixes
-- update version manager to retrieve previous tag for contributor and commit logging (by @paul-mothapo)
+### Features
+- add pauljs dependency and update README for experimental features (by @paul-mothapo)
+
+### Documentation
+- update README to clarify usage of experimental features in wormhole phase (by @paul-mothapo)
 
 ## Contributors
 
