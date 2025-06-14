@@ -23,8 +23,22 @@ function determineCosmicTag(version) {
 
 function getContributors() {
   try {
-    const contributors = execSync('git log --format="%aN" | sort -u').toString().trim().split('\n');
-    return contributors.filter(name => name && !name.includes('[bot]'));
+    let gitCommand = 'git log --format="%aN"';
+    try {
+      const lastTag = execSync('git describe --tags --abbrev=0').toString().trim();
+      gitCommand = `git log ${lastTag}..HEAD --format="%aN"`;
+    } catch (e) {
+      // No tags exist, will get all contributors
+    }
+    
+    const contributors = execSync(gitCommand)
+      .toString()
+      .trim()
+      .split('\n')
+      .filter(name => name && !name.includes('[bot]') && !name.includes('Automated'))
+      .filter((name, index, self) => self.indexOf(name) === index);
+
+    return contributors;
   } catch (error) {
     console.warn('Warning: Could not fetch contributors:', error.message);
     return [];
@@ -33,7 +47,16 @@ function getContributors() {
 
 function getCommitsByType() {
   try {
-    const commits = execSync('git log $(git describe --tags --abbrev=0)..HEAD --no-merges --pretty=format:"%s|%aN"')
+    // Get commits, falling back to all commits if no tags exist
+    let gitCommand = 'git log --no-merges --pretty=format:"%s|%aN"';
+    try {
+      const lastTag = execSync('git describe --tags --abbrev=0').toString().trim();
+      gitCommand = `git log ${lastTag}..HEAD --no-merges --pretty=format:"%s|%aN"`;
+    } catch (e) {
+      // No tags exist, will get all commits
+    }
+
+    const commits = execSync(gitCommand)
       .toString()
       .trim()
       .split('\n')
@@ -68,7 +91,7 @@ function getCommitsByType() {
 
       const entry = `${cleanMessage} (by @${author})`;
 
-      if (message.match(/^feat(\([^)]+\))?:/)) {
+      if (message.match(/^feat(\([^)]+\))?:/) || message.includes('[feature]')) {
         changes.features.push(entry);
       } else if (message.match(/^fix(\([^)]+\))?:/) || message.includes('[bug]')) {
         changes.fixes.push(entry);
@@ -82,12 +105,11 @@ function getCommitsByType() {
         changes.tests.push(entry);
       } else if (message.match(/^update(\([^)]+\))?:/)) {
         changes.updates.push(entry);
-      } else if (!message.startsWith('ci:') && !message.includes('version bump')) {
+      } else if (!message.startsWith('ci:')) {
         changes.other.push(entry);
       }
     });
 
-    // Remove duplicates and empty entries
     Object.keys(changes).forEach(key => {
       changes[key] = [...new Set(changes[key])].filter(Boolean);
     });
