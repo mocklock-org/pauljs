@@ -16,6 +16,9 @@ async function createProjectStructure(projectPath, answers) {
     await fsPromises.mkdir(projectPath, { recursive: true });
   }
 
+  const versionTag = process.env.npm_config_tag || 'latest';
+  console.log(chalk.blue(`Using PaulJS version tag: ${versionTag}`));
+
   const projectPackage = {
     name: projectName,
     version: '1.0.0',
@@ -26,7 +29,7 @@ async function createProjectStructure(projectPath, answers) {
       dev: 'pauljs serve --watch'
     },
     dependencies: {
-      'pauljs': require('../package.json').version
+      'pauljs': versionTag === 'latest' ? require('../package.json').version : `pauljs@${versionTag}`
     }
   };
 

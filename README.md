@@ -19,9 +19,14 @@ Create a new project with a single command:
 
 ```bash
 npx create-pauljs-app
+```
 
-### Try experimental features
-npm install pauljs@wormhole
+### Try Experimental Features
+
+To use experimental features:
+
+```bash
+npx create-pauljs-app --tag wormhole
 ```
 
 That's it! Just follow the interactive prompts to:
