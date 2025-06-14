@@ -21,6 +21,16 @@ Create a new project with a single command:
 npx create-pauljs-app
 ```
 
+### Try Experimental Features
+
+To use experimental features (currently in wormhole phase):
+
+```bash
+npx create-pauljs-app --tag wormhole
+```
+
+> Note: We are currently focused on the wormhole experimental phase, which includes our latest alpha features and improvements.
+
 That's it! Just follow the interactive prompts to:
 1. Choose your project name and location
 2. Set your site title and description

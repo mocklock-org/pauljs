@@ -232,7 +232,7 @@ function generateChangelogEntry(version, tag) {
 
   changelog += `## Installation\n\n`;
   changelog += '```bash\n';
-  changelog += `npm install pauljs@${tag}\n`;
+  changelog += `npx create-pauljs-app --tag ${tag}\n`;
   changelog += '```\n';
 
   return changelog;
