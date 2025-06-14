@@ -126,22 +126,19 @@ class PaulJS {
   }
 }
 
-// Factory function to create components with dynamic updates
 const componentFactory = (name, component, core) => {
   return (props = {}) => {
     try {
-      // Handle null/empty component case
-      if (props === null || props === '') {
+      if (!component || props === null || props === '') {
         return '';
       }
       
-      // Get the component's default props
       const defaultProps = component.defaultProps || {};
-      // Merge props, ensuring custom props override defaults
       const mergedProps = { ...defaultProps, ...props };
       return component.render(mergedProps);
     } catch (error) {
-      throw new Error(`Component ${name} render failed: ${error.message}`);
+      console.error(`Component ${name} render failed:`, error);
+      return '';
     }
   };
 };
@@ -150,7 +147,7 @@ const pauljs = new PaulJS();
 
 module.exports = {
   createApp: () => pauljs,
-  components: Array.from(pauljs.getComponents().entries()).reduce((acc, [name, component]) => {
+  components: Array.from(pauljs.core.getComponents().entries()).reduce((acc, [name, component]) => {
     acc[name] = componentFactory(name, component, pauljs.core);
     return acc;
   }, {}),

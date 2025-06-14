@@ -46,6 +46,11 @@ class PaulJSCore {
     this.components.clear();
     this.loadBuiltInComponents();
   }
+
+  getComponents() {
+    const allComponents = new Map([...this.components, ...this.customComponents]);
+    return allComponents;
+  }
 }
 
 module.exports = PaulJSCore; 
