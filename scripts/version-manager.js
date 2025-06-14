@@ -21,19 +21,98 @@ function determineCosmicTag(version) {
   return 'latest';
 }
 
+function getContributors() {
+  try {
+    const contributors = execSync('git log --format="%aN" | sort -u').toString().trim().split('\n');
+    return contributors.filter(name => name && !name.includes('[bot]'));
+  } catch (error) {
+    console.warn('Warning: Could not fetch contributors:', error.message);
+    return [];
+  }
+}
+
+function getCommitsByType() {
+  try {
+    const commits = execSync('git log $(git describe --tags --abbrev=0)..HEAD --pretty=format:"%s|%aN"')
+      .toString()
+      .trim()
+      .split('\n')
+      .filter(line => line && !line.includes('[skip ci]'));
+
+    const changes = {
+      features: [],
+      fixes: [],
+      other: []
+    };
+
+    commits.forEach(commit => {
+      const [message, author] = commit.split('|');
+      const entry = `${message} (by @${author})`;
+
+      if (message.startsWith('feat:') || message.includes('[feature]')) {
+        changes.features.push(entry.replace(/^feat:\s*/, ''));
+      } else if (message.startsWith('fix:') || message.includes('[bug]')) {
+        changes.fixes.push(entry.replace(/^fix:\s*/, ''));
+      } else {
+        changes.other.push(entry);
+      }
+    });
+
+    return changes;
+  } catch (error) {
+    console.warn('Warning: Could not fetch commits:', error.message);
+    return { features: [], fixes: [], other: [] };
+  }
+}
+
 function generateChangelogEntry(version, tag) {
   const date = new Date().toISOString().split('T')[0];
-  return `# ${version} [${tag}] - ${date}
+  const contributors = getContributors();
+  const changes = getCommitsByType();
 
-## Changes
-- Version bump to ${version}
-- Tagged as ${tag} release
+  let changelog = `# ${version} [${tag}] - ${date}\n\n`;
 
-## Installation
-\`\`\`bash
-npm install pauljs@${tag}
-\`\`\`
-`;
+  changelog += '## What\'s Changed\n\n';
+  
+  if (changes.features.length > 0) {
+    changelog += '### Features\n';
+    changes.features.forEach(feat => {
+      changelog += `- ${feat}\n`;
+    });
+    changelog += '\n';
+  }
+
+  if (changes.fixes.length > 0) {
+    changelog += '### Bug Fixes\n';
+    changes.fixes.forEach(fix => {
+      changelog += `- ${fix}\n`;
+    });
+    changelog += '\n';
+  }
+
+  if (changes.other.length > 0) {
+    changelog += '### Other Changes\n';
+    changes.other.forEach(change => {
+      changelog += `- ${change}\n`;
+    });
+    changelog += '\n';
+  }
+
+  if (contributors.length > 0) {
+    changelog += '## Contributors\n\n';
+    contributors.forEach(contributor => {
+      changelog += `- @${contributor}\n`;
+    });
+    changelog += '\n';
+  }
+
+  // Installation section
+  changelog += `## Installation\n\n`;
+  changelog += '```bash\n';
+  changelog += `npm install pauljs@${tag}\n`;
+  changelog += '```\n';
+
+  return changelog;
 }
 
 function main() {
@@ -47,7 +126,6 @@ function main() {
   console.log(`Cosmic tag: ${cosmicTag}`);
   console.log(`Install command: npm install pauljs@${cosmicTag}`);
 
-  // Generate and write changelog
   const changelogContent = generateChangelogEntry(currentVersion, cosmicTag);
   fs.writeFileSync(path.join(__dirname, '..', 'CHANGELOG.md'), changelogContent);
   
