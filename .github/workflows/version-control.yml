@@ -34,15 +34,19 @@ jobs:
       - name: Determine Version Type
         id: version-type
         run: |
-          if [[ "${{ github.event.head_commit.message }}" == *"[wormhole]"* ]]; then
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          if [[ "$CURRENT_VERSION" == 1.* ]]; then
             echo "type=alpha" >> $GITHUB_OUTPUT
             echo "tag=wormhole" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event.head_commit.message }}" == *"[beta]"* ]]; then
+          elif [[ "$CURRENT_VERSION" == 2.* ]]; then
             echo "type=beta" >> $GITHUB_OUTPUT
             echo "tag=event-horizon" >> $GITHUB_OUTPUT
-          else
+          elif [[ "$CURRENT_VERSION" == 3.* ]]; then
             echo "type=release" >> $GITHUB_OUTPUT
             echo "tag=neutron" >> $GITHUB_OUTPUT
+          else
+            echo "type=release" >> $GITHUB_OUTPUT
+            echo "tag=latest" >> $GITHUB_OUTPUT
           fi
 
       - name: Generate Version

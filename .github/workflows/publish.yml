@@ -44,19 +44,19 @@ jobs:
         id: determine-tag
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          if [[ $VERSION == *"-alpha"* ]] && [[ $VERSION =~ ^1\. ]]; then
+          if [[ "$VERSION" == 1.* ]]; then
             echo "tag=wormhole" >> $GITHUB_OUTPUT
-          elif [[ $VERSION == *"-beta"* ]] && [[ $VERSION =~ ^2\. ]]; then
+          elif [[ "$VERSION" == 2.* ]]; then
             echo "tag=event-horizon" >> $GITHUB_OUTPUT
-          elif [[ $VERSION =~ ^3\. ]]; then
+          elif [[ "$VERSION" == 3.* ]]; then
             echo "tag=neutron" >> $GITHUB_OUTPUT
-          elif [[ $VERSION =~ ^4\. ]]; then
+          elif [[ "$VERSION" == 4.* ]]; then
             echo "tag=quasar" >> $GITHUB_OUTPUT
-          elif [[ $VERSION =~ ^5\. ]]; then
+          elif [[ "$VERSION" == 5.* ]]; then
             echo "tag=nova" >> $GITHUB_OUTPUT
-          elif [[ $VERSION =~ ^6\. ]]; then
+          elif [[ "$VERSION" == 6.* ]]; then
             echo "tag=cosmos-2025" >> $GITHUB_OUTPUT
-          elif [[ $VERSION =~ ^7\. ]]; then
+          elif [[ "$VERSION" == 7.* ]]; then
             echo "tag=singularity" >> $GITHUB_OUTPUT
           else
             echo "tag=latest" >> $GITHUB_OUTPUT
