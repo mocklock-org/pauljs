@@ -1,9 +1,9 @@
-# 1.11.2-alpha.2 [wormhole] - 2025-06-14
+# 1.11.2-alpha.3 [wormhole] - 2025-06-14
 
 ## What's Changed
 
 ### Maintenance
-- remove pauljs dependency and update core component handling (by @paul-mothapo)
+- enhance component handling and improve error handling in rendering (by @paul-mothapo)
 
 ## Contributors
 
