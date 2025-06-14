@@ -28,6 +28,8 @@ jobs:
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
+          git clean -fd
+          git reset --hard HEAD
       
       - name: Determine Version Type
         id: version-type
@@ -56,9 +58,17 @@ jobs:
           fi
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
+      - name: Clean Working Directory
+        run: |
+          git clean -fd
+          git reset --hard HEAD
+          
       - name: Update Version
         run: |
-          npm version ${{ steps.generate-version.outputs.version }} -m "ci: bump version to %s [${{ steps.version-type.outputs.tag }}]"
+          npm version ${{ steps.generate-version.outputs.version }} -m "ci: bump version to %s [${{ steps.version-type.outputs.tag }}]" --no-git-tag-version
+          git add package.json package-lock.json
+          git commit -m "ci: bump version to ${{ steps.generate-version.outputs.version }} [${{ steps.version-type.outputs.tag }}]"
+          git tag -a "v${{ steps.generate-version.outputs.version }}" -m "Version ${{ steps.generate-version.outputs.version }} [${{ steps.version-type.outputs.tag }}]"
       
       - name: Generate Release Notes
         run: node scripts/version-manager.js
