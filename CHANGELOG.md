@@ -1,9 +1,9 @@
-# 1.11.2-alpha.0 [wormhole] - 2025-06-14
+# 1.11.2-alpha.1 [wormhole] - 2025-06-14
 
 ## What's Changed
 
-### Bug Fixes
-- update package.json to correct bin paths and repository URL format (by @paul-mothapo)
+### Maintenance
+- remove example landing page and update version manager for installation instructions (by @paul-mothapo)
 
 ## Contributors
 
@@ -12,5 +12,5 @@
 ## Installation
 
 ```bash
-npm install pauljs@wormhole
+npx create-pauljs-app --tag wormhole
 ```
