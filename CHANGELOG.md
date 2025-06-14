@@ -1,9 +1,9 @@
-# 1.11.2-alpha.1 [wormhole] - 2025-06-14
+# 1.11.2-alpha.2 [wormhole] - 2025-06-14
 
 ## What's Changed
 
 ### Maintenance
-- remove example landing page and update version manager for installation instructions (by @paul-mothapo)
+- remove pauljs dependency and update core component handling (by @paul-mothapo)
 
 ## Contributors
 
