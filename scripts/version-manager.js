@@ -33,7 +33,7 @@ function getContributors() {
 
 function getCommitsByType() {
   try {
-    const commits = execSync('git log $(git describe --tags --abbrev=0)..HEAD --pretty=format:"%s|%aN"')
+    const commits = execSync('git log $(git describe --tags --abbrev=0)..HEAD --no-merges --pretty=format:"%s|%aN"')
       .toString()
       .trim()
       .split('\n')
@@ -42,26 +42,70 @@ function getCommitsByType() {
     const changes = {
       features: [],
       fixes: [],
+      docs: [],
+      chores: [],
+      refactor: [],
+      tests: [],
+      updates: [],
       other: []
     };
 
     commits.forEach(commit => {
       const [message, author] = commit.split('|');
-      const entry = `${message} (by @${author})`;
+      const cleanMessage = message
+        .replace(/\[wormhole\]/g, '')
+        .replace(/\[alpha\]/g, '')
+        .replace(/\[beta\]/g, '')
+        .replace(/ci:/g, '')
+        .replace(/feat:/g, '')
+        .replace(/fix:/g, '')
+        .replace(/docs?:/g, '')
+        .replace(/chore:/g, '')
+        .replace(/refactor:/g, '')
+        .replace(/test:/g, '')
+        .replace(/update:/g, '')
+        .trim();
 
-      if (message.startsWith('feat:') || message.includes('[feature]')) {
-        changes.features.push(entry.replace(/^feat:\s*/, ''));
-      } else if (message.startsWith('fix:') || message.includes('[bug]')) {
-        changes.fixes.push(entry.replace(/^fix:\s*/, ''));
-      } else {
+      const entry = `${cleanMessage} (by @${author})`;
+
+      // Match conventional commit types
+      if (message.match(/^feat(\([^)]+\))?:/)) {
+        changes.features.push(entry);
+      } else if (message.match(/^fix(\([^)]+\))?:/) || message.includes('[bug]')) {
+        changes.fixes.push(entry);
+      } else if (message.match(/^docs?(\([^)]+\))?:/)) {
+        changes.docs.push(entry);
+      } else if (message.match(/^chore(\([^)]+\))?:/)) {
+        changes.chores.push(entry);
+      } else if (message.match(/^refactor(\([^)]+\))?:/)) {
+        changes.refactor.push(entry);
+      } else if (message.match(/^test(\([^)]+\))?:/)) {
+        changes.tests.push(entry);
+      } else if (message.match(/^update(\([^)]+\))?:/)) {
+        changes.updates.push(entry);
+      } else if (!message.startsWith('ci:') && !message.includes('version bump')) {
         changes.other.push(entry);
       }
+    });
+
+    // Remove duplicates and empty entries
+    Object.keys(changes).forEach(key => {
+      changes[key] = [...new Set(changes[key])].filter(Boolean);
     });
 
     return changes;
   } catch (error) {
     console.warn('Warning: Could not fetch commits:', error.message);
-    return { features: [], fixes: [], other: [] };
+    return {
+      features: [],
+      fixes: [],
+      docs: [],
+      chores: [],
+      refactor: [],
+      tests: [],
+      updates: [],
+      other: []
+    };
   }
 }
 
@@ -86,6 +130,46 @@ function generateChangelogEntry(version, tag) {
     changelog += '### Bug Fixes\n';
     changes.fixes.forEach(fix => {
       changelog += `- ${fix}\n`;
+    });
+    changelog += '\n';
+  }
+
+  if (changes.updates.length > 0) {
+    changelog += '### Updates\n';
+    changes.updates.forEach(update => {
+      changelog += `- ${update}\n`;
+    });
+    changelog += '\n';
+  }
+
+  if (changes.refactor.length > 0) {
+    changelog += '### Refactoring\n';
+    changes.refactor.forEach(ref => {
+      changelog += `- ${ref}\n`;
+    });
+    changelog += '\n';
+  }
+
+  if (changes.docs.length > 0) {
+    changelog += '### Documentation\n';
+    changes.docs.forEach(doc => {
+      changelog += `- ${doc}\n`;
+    });
+    changelog += '\n';
+  }
+
+  if (changes.tests.length > 0) {
+    changelog += '### Testing\n';
+    changes.tests.forEach(test => {
+      changelog += `- ${test}\n`;
+    });
+    changelog += '\n';
+  }
+
+  if (changes.chores.length > 0) {
+    changelog += '### Maintenance\n';
+    changes.chores.forEach(chore => {
+      changelog += `- ${chore}\n`;
     });
     changelog += '\n';
   }
