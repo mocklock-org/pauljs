@@ -1,1 +1,3 @@
 "use strict";function validateComponent(e){if("function"!=typeof e.render)throw new Error("Component must have a render method");if(!e.defaultProps||"object"!=typeof e.defaultProps)throw new Error("Component must have defaultProps object");if(e.react&&"function"!=typeof e.react)throw new Error("React adapter must be a function if provided");return!0}function validateTemplate(e){if("string"!=typeof e)throw new Error("Template must be a string");if(!(e.includes("<%")&&e.includes("%>")))throw new Error("Template must contain valid EJS syntax");return!0}module.exports={validateComponent:validateComponent,validateTemplate:validateTemplate};
+//# sourceMappingURL=validation.js.map
+//# sourceMappingURL=..\sourcemaps\validation.js.map

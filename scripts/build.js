@@ -18,9 +18,10 @@ async function copyFile(src, dest) {
 }
 
 async function writeSourceMap(map, outPath) {
-  const mapPath = outPath + '.map';
+  const mapPath = path.join(paths.sourceMaps, path.basename(outPath) + '.map');
+  await ensureDir(path.dirname(mapPath));
   await fs.writeFile(mapPath, JSON.stringify(map));
-  return `//# sourceMappingURL=${path.basename(mapPath)}`;
+  return `//# sourceMappingURL=${path.relative(path.dirname(outPath), mapPath)}`;
 }
 
 async function processJavaScript(filePath, outPath) {
