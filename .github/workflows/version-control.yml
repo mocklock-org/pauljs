@@ -10,11 +10,14 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      packages: write
+      id-token: write
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -108,6 +111,13 @@ jobs:
       
       - name: Generate Release Notes
         run: node scripts/version-manager.js
+      
+      - name: Push Changes
+        run: |
+          remote_repo="https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push "${remote_repo}" HEAD:main --tags --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Create Release
         id: create_release
