@@ -226,20 +226,34 @@ function generateChangelogEntry(version, tag) {
 }
 
 function main() {
-  const packageJson = require('../package.json');
-  const currentVersion = packageJson.version;
-  const cosmicTag = determineCosmicTag(currentVersion);
-  
-  console.log('\nPaulJS Version Information:');
-  console.log('---------------------------');
-  console.log(`Current version: ${currentVersion}`);
-  console.log(`Cosmic tag: ${cosmicTag}`);
-  console.log(`Install command: npm install pauljs@${cosmicTag}`);
-
-  const changelogContent = generateChangelogEntry(currentVersion, cosmicTag);
-  fs.writeFileSync(path.join(__dirname, '..', 'CHANGELOG.md'), changelogContent);
-  
-  console.log('\nChangelog has been updated successfully.');
+  try {
+    const packageJson = require('../package.json');
+    const currentVersion = packageJson.version;
+    const cosmicTag = determineCosmicTag(currentVersion);
+    
+    console.log('\nPaulJS Version Information:');
+    console.log('---------------------------');
+    console.log(`Current version: ${currentVersion}`);
+    console.log(`Cosmic tag: ${cosmicTag}`);
+    
+    console.log('\nGenerating changelog...');
+    const changelogContent = generateChangelogEntry(currentVersion, cosmicTag);
+    
+    console.log('Writing changelog to CHANGELOG.md...');
+    fs.writeFileSync(path.join(__dirname, '..', 'CHANGELOG.md'), changelogContent);
+    
+    console.log('Verifying changelog was written...');
+    if (fs.existsSync(path.join(__dirname, '..', 'CHANGELOG.md'))) {
+      console.log('Changelog written successfully.');
+      console.log('\nChangelog content:');
+      console.log(changelogContent);
+    } else {
+      throw new Error('Failed to write CHANGELOG.md');
+    }
+  } catch (error) {
+    console.error('\nError in version manager:', error);
+    process.exit(1);
+  }
 }
 
 if (require.main === module) {
