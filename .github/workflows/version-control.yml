@@ -31,6 +31,18 @@ jobs:
           git clean -fd
           git reset --hard HEAD
       
+      - name: Analyze Changes
+        id: analyze-changes
+        run: |
+          COMMITS=$(git log $(git describe --tags --abbrev=0)..HEAD --pretty=format:"%s")
+          if echo "$COMMITS" | grep -q "^feat\|\\[feature\\]"; then
+            echo "change=minor" >> $GITHUB_OUTPUT
+          elif echo "$COMMITS" | grep -q "^fix:\|\\[bug\\]"; then
+            echo "change=patch" >> $GITHUB_OUTPUT
+          else
+            echo "change=none" >> $GITHUB_OUTPUT
+          fi
+
       - name: Determine Version Type
         id: version-type
         run: |
@@ -54,11 +66,31 @@ jobs:
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           if [[ "${{ steps.version-type.outputs.type }}" == "alpha" ]]; then
-            NEW_VERSION=$(npx semver $CURRENT_VERSION -i prerelease --preid alpha)
+            if [[ "${{ steps.analyze-changes.outputs.change }}" == "minor" ]]; then
+              NEW_VERSION=$(npx semver $CURRENT_VERSION -i minor)
+              NEW_VERSION=$(npx semver $NEW_VERSION -i prerelease --preid alpha)
+            elif [[ "${{ steps.analyze-changes.outputs.change }}" == "patch" ]]; then
+              NEW_VERSION=$(npx semver $CURRENT_VERSION -i patch)
+              NEW_VERSION=$(npx semver $NEW_VERSION -i prerelease --preid alpha)
+            else
+              NEW_VERSION=$(npx semver $CURRENT_VERSION -i prerelease --preid alpha)
+            fi
           elif [[ "${{ steps.version-type.outputs.type }}" == "beta" ]]; then
-            NEW_VERSION=$(npx semver $CURRENT_VERSION -i prerelease --preid beta)
+            if [[ "${{ steps.analyze-changes.outputs.change }}" == "minor" ]]; then
+              NEW_VERSION=$(npx semver $CURRENT_VERSION -i minor)
+              NEW_VERSION=$(npx semver $NEW_VERSION -i prerelease --preid beta)
+            elif [[ "${{ steps.analyze-changes.outputs.change }}" == "patch" ]]; then
+              NEW_VERSION=$(npx semver $CURRENT_VERSION -i patch)
+              NEW_VERSION=$(npx semver $NEW_VERSION -i prerelease --preid beta)
+            else
+              NEW_VERSION=$(npx semver $CURRENT_VERSION -i prerelease --preid beta)
+            fi
           else
-            NEW_VERSION=$(npx semver $CURRENT_VERSION -i patch)
+            if [[ "${{ steps.analyze-changes.outputs.change }}" == "minor" ]]; then
+              NEW_VERSION=$(npx semver $CURRENT_VERSION -i minor)
+            else
+              NEW_VERSION=$(npx semver $CURRENT_VERSION -i patch)
+            fi
           fi
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
