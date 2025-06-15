@@ -112,7 +112,7 @@ jobs:
       - name: Generate Release Notes
         run: |
           echo "Generating changelog..."
-          node scripts/version-manager.js
+          npx tsx scripts/version-manager.mts
           
           if [ -f CHANGELOG.md ]; then
             echo "Changelog content:"
