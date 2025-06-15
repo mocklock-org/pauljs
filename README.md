@@ -1,6 +1,6 @@
 # PaulJS
 
-A lightweight framework for building fast landing pages. PaulJS provides modular, reusable components that can be used standalone or integrated with popular JavaScript frameworks like React.
+A modern, flexible framework for building landing pages with TypeScript and ESM support.
 
 ## Features
 
@@ -42,151 +42,164 @@ The CLI will automatically:
 3. Install all dependencies
 4. Configure your development environment
 
-Once created, you can start developing:
-```bash
-cd my-landing-page  # Or your chosen project name
-npm run dev         # Start development server
+# Start development server
+npm run dev
 ```
 
 Visit `http://localhost:3000` to see your landing page!
 
 ## Project Structure
 
-When you create a new PaulJS project, it comes with the following structure:
-
 ```
 my-landing-page/
-  ├── pages/          # Page configurations
-  │   └── index.js    # Main page
-  ├── components/     # Custom components
-  │   ├── CustomHero.js
-  │   ├── CustomCTA.js
-  │   └── CustomFooter.js
-  ├── styles/        # Custom styles
-  │   └── main.css   # Global styles and component overrides
-  ├── public/        # Static assets (images, fonts, etc.)
-  └── package.json
+├── src/
+│   ├── components/     # React components
+│   ├── styles/        # Global styles and themes
+│   └── pages/         # Page configurations
+├── public/            # Static assets
+├── pauljs.config.ts   # PaulJS configuration
+└── package.json
 ```
 
-### Pages
+## Configuration
 
-The `pages` directory contains your page configurations. Each page can have its own layout and components:
+Create a `pauljs.config.ts` file in your project root:
 
-```javascript
-// pages/index.js
-const pauljs = require('pauljs');
-const CustomHero = require('../components/CustomHero');
+```typescript
+import { PaulJSConfig } from 'pauljs';
 
-const app = pauljs.createApp();
+const config: PaulJSConfig = {
+  pages: {
+    '/': {
+      meta: {
+        title: 'My Landing Page',
+        description: 'Welcome to my landing page'
+      },
+      sections: [
+        {
+          component: {
+            name: 'Hero',
+            props: {
+              title: 'Welcome',
+              subtitle: 'Build beautiful landing pages with PaulJS'
+            }
+          },
+          styles: [
+            {
+              path: './styles/hero.scss',
+              type: 'scss'
+            }
+          ],
+          layout: {
+            container: 'container mx-auto',
+            className: 'py-12'
+          }
+        }
+      ]
+    }
+  }
+};
 
-app.createPage('/', {
-  title: 'My Landing Page',
-  hero: CustomHero({
-    title: 'Welcome',
-    subtitle: 'Build amazing landing pages'
-  })
-});
-
-module.exports = app;
+export default config;
 ```
 
-### Custom Components
+## Components
 
-Create custom components by extending PaulJS base components:
+Create React components with TypeScript:
 
-```javascript
-// components/CustomHero.js
-const pauljs = require('pauljs');
-const { components } = pauljs;
+```typescript
+import React from 'react';
 
-function CustomHero(props) {
-  return components.hero({
-    ...props,
-    backgroundColor: '#f7fafc',
-    textColor: '#2d3748'
-  });
+interface HeroProps {
+  title: string;
+  subtitle: string;
 }
 
-module.exports = CustomHero;
+export const Hero: React.FC<HeroProps> = ({ title, subtitle }) => (
+  <div className="hero">
+    <h1>{title}</h1>
+    <p>{subtitle}</p>
+  </div>
+);
 ```
 
-### Styling
+## Styling
 
-Customize your components using CSS:
+PaulJS supports multiple styling options:
 
-```css
-/* styles/main.css */
-:root {
-  --primary-color: #3182ce;
-  --secondary-color: #2d3748;
+- SCSS modules
+- CSS-in-JS
+- Tailwind CSS
+- CSS Modules
+
+Example SCSS:
+
+```scss
+.hero {
+  @apply bg-gradient-to-r from-blue-500 to-purple-500;
+  
+  h1 {
+    @apply text-4xl font-bold text-white;
+  }
+  
+  p {
+    @apply text-xl text-white opacity-80;
+  }
 }
-
-.pauljs-hero {
-  /* Override hero styles */
-}
-
-.pauljs-cta {
-  /* Override CTA styles */
-}
 ```
 
-## Available Components
 
-### Hero Section
-```javascript
-components.hero({
-  title: 'Your Title',
-  subtitle: 'Your subtitle text',
-  ctaText: 'Button Text',
-  ctaUrl: '/your-link',
-  backgroundColor: '#f8f9fa',
-  textColor: '#212529'
-});
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Run tests
+npm test
+
+# Lint code
+npm run lint
+
+# Format code
+npm run format
 ```
 
-### Call to Action (CTA)
-```javascript
-components.cta({
-  title: 'Ready to Start?',
-  description: 'Join thousands of users...',
-  primaryButtonText: 'Get Started',
-  primaryButtonUrl: '/signup',
-  secondaryButtonText: 'Learn More',
-  secondaryButtonUrl: '/docs'
-});
+## Local Testing
+
+To test the package locally:
+
+```bash
+# Create a tarball of the package
+npm pack
+
+# Install the package locally in another project
+npm install /path/to/pauljs-x.x.x.tgz
+
+# Or link the package for development
+npm link              # Run this in the pauljs package directory
+npm link pauljs       # Run this in your test project directory
+
+# Unlink when done testing
+npm unlink pauljs     # Run this in your test project directory
+npm unlink           # Run this in the pauljs package directory
 ```
 
-### Footer
-```javascript
-components.footer({
-  companyName: 'Your Company',
-  links: [
-    { text: 'About', url: '/about' },
-    { text: 'Contact', url: '/contact' }
-  ]
-});
-```
+## Contributing
 
-## React Integration
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feat/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feat/amazing-feature`)
+5. Open a Pull Request
 
-PaulJS components can be used in React applications:
+## License
 
-```javascript
-const { components, adapters } = require('pauljs');
-const { convertToReactComponent } = adapters.react;
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-// Convert a PaulJS component to a React component
-const HeroComponent = convertToReactComponent(components.hero, {
-  title: 'Welcome',
-  subtitle: 'Build amazing landing pages'
-});
-```
-
-## Development Commands
-
-- `npm run dev` - Start development server with hot reloading
-- `npm start` - Start production server
-- `npm run build` - Build static site for production
 
 ## License
 
